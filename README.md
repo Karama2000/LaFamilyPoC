@@ -43,6 +43,7 @@ app/
     ├── mockContent.ts     # Démo carrousels
     ├── agendaData.ts      # 12 événements démo
     └── partnersData.ts    # 26 partenaires
+
 🌍 Système de Traduction
 Principe : Textes en FR → traduits à la volée via LibreTranslate
 
@@ -54,7 +55,7 @@ Agenda (/agenda)	Recherche dates + filtres (canton/âge/catégories) + grille r�
 Partenaires (/partenaires)	Filtres zone SR/SA + catégorie (affiche uniquement SA)
 
 🎨 Charte Graphique
-Couleur	Code	Usage
+
 Rose	#E61171	Hero, boutons, accents
 Pêche	#FFD1B5	Fonds alternés
 Rose pâle	#FFCEE4	Badges
@@ -64,7 +65,7 @@ Orange	#FF863D	Flèches carrousel
 Typo: Montserrat (bold pour titres, tracking-[0.2px])
 
 ⚠️ Pièges Connus
-Problème	Solution
+Problème	                            Solution
 Casse composants (Windows)	Renommer en 2 temps + supprimer .nuxt
 TypeScript strict (array[i] = T|undefined)	Fallback : array[i] ?? defaut
 Port Docker occupé	Vérifier docker ps, changer .env

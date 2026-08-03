@@ -1,0 +1,37 @@
+{
+  // tsconfig.json à la racine — Nuxt génère automatiquement la vraie
+  // configuration TypeScript (avec tous les alias, types auto-importés,
+  // etc.) dans le dossier .nuxt/ à chaque lancement (npm run dev / build).
+  // Ce fichier ne fait que POINTER vers ces fichiers générés : il ne faut
+  // normalement jamais avoir besoin de le modifier à la main.
+  // Doc : https://nuxt.com/docs/guide/concepts/typescript
+
+  // "files": [] désactive l'inclusion directe de fichiers par ce
+  // tsconfig — tout est délégué aux projets référencés ci-dessous
+  // (pattern "solution TypeScript" à projets multiples).
+  "files": [],
+
+  // "references" déclare les sous-projets TypeScript que Nuxt a générés,
+  // chacun avec son propre contexte de compilation :
+  "references": [
+    {
+      // Config pour le code app/ côté client (composants, pages, layouts,
+      // composables...) — inclut les types auto-importés de Vue/Nuxt.
+      "path": "./.nuxt/tsconfig.app.json"
+    },
+    {
+      // Config pour le code server/ (routes API Nitro, middlewares serveur).
+      "path": "./.nuxt/tsconfig.server.json"
+    },
+    {
+      // Config partagée entre client et serveur (types communs, utils
+      // isomorphes utilisables des deux côtés).
+      "path": "./.nuxt/tsconfig.shared.json"
+    },
+    {
+      // Config pour les fichiers de configuration Node (nuxt.config.ts,
+      // tailwind.config.ts...) qui tournent en dehors du runtime navigateur.
+      "path": "./.nuxt/tsconfig.node.json"
+    }
+  ]
+}

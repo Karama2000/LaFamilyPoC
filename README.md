@@ -1,116 +1,355 @@
-📚 Documentation - diefamilie.ch / lafamily.ch
+# 📚 Documentation du projet — diefamilie.ch / lafamily.ch
 
-🏗️ Stack Technique
-Framework: Nuxt 3 + Vue 3 + Composition API
+> **Proof of Concept (PoC)** développé avec **Nuxt 3** pour la plateforme **LaFamily / DieFamilie**.
 
-Styling: Tailwind CSS (valeurs arbitraires)
+---
 
-Icônes: Tabler Icons
+# 🏗️ Stack technique
 
-Traduction: LibreTranslate (Docker) + glossaire métier
+| Technologie | Description |
+|-------------|-------------|
+| Framework | Nuxt 3 |
+| Front-end | Vue 3 + Composition API |
+| Langage | TypeScript (mode strict) |
+| Styling | Tailwind CSS |
+| Icônes | Tabler Icons |
+| Traduction | LibreTranslate (Docker) + Glossaire métier |
+| Routing | File-Based Routing (Nuxt) |
 
-Routing: Nuxt file-based
+---
 
-TypeScript: Mode strict
+# 🚀 Installation
 
-🚀 Démarrage Rapide
-bash
-# 1. Installation
+## 1. Cloner le projet
+
+```bash
+git clone https://github.com/Karama2000/LaFam1yPoC.git
+cd LaFam1yPoC
+```
+
+---
+
+## 2. Installer les dépendances
+
+```bash
 npm install
+```
 
-# 2. Variables d'environnement (.env)
+---
+
+## 3. Configurer les variables d'environnement
+
+Créer un fichier **.env**
+
+```env
 NUXT_PUBLIC_LIBRETRANSLATE_URL=http://localhost:5003
+```
 
-# 3. Démarrer LibreTranslate
-docker run -d --name libretranslate -p 5003:5000 libretranslate/libretranslate
+---
 
-# 4. Lancer le projet
+## 4. Démarrer LibreTranslate
+
+```bash
+docker run -d \
+--name libretranslate \
+-p 5003:5000 \
+libretranslate/libretranslate
+```
+
+> ⚠️ Lors du premier lancement, LibreTranslate télécharge les modèles de traduction. Cette opération peut durer entre **5 et 10 minutes**.
+
+---
+
+## 5. Lancer le projet
+
+```bash
 npm run dev
+```
 
-📁 Structure
-text
+Le site est ensuite disponible sur :
+
+```
+http://localhost:3000
+```
+
+---
+
+# 📁 Structure du projet
+
+```text
 app/
-├── pages/
-│   ├── index.vue          # Accueil
-│   ├── agenda.vue         # Agenda + filtres
-│   └── partenaires.vue    # Partenaires (filtrage SA)
-├── components/            # 16 composants (Header, Footer, Carrousels, Cartes...)
+├── components/
+│   ├── Header.vue
+│   ├── Footer.vue
+│   ├── Carousels/
+│   ├── Cards/
+│   └── ...
+│
 ├── composables/
-│   └── useTranslation.ts  # Traduction FR→EN/DE/IT
-└── data/
-    ├── staticTexts.ts     # Tous les textes fixes (FR)
-    ├── translationGlossary.ts # Overrides métier
-    ├── mockContent.ts     # Démo carrousels
-    ├── agendaData.ts      # 12 événements démo
-    └── partnersData.ts    # 26 partenaires
+│   └── useTranslation.ts
+│
+├── data/
+│   ├── staticTexts.ts
+│   ├── translationGlossary.ts
+│   ├── mockContent.ts
+│   ├── agendaData.ts
+│   └── partnersData.ts
+│
+├── pages/
+│   ├── index.vue
+│   ├── agenda.vue
+│   └── partenaires.vue
+│
+└── assets/
+```
 
-🌍 Système de Traduction
-Principe : Textes en FR → traduits à la volée via LibreTranslate
+---
 
+# 🌍 Système de traduction
 
-📄 Pages Principales
-Page	Fonctionnalités
-Accueil (/)	Hero + carrousels (sélection/nouveautés) + coups de cœur + newsletter
-Agenda (/agenda)	Recherche dates + filtres (canton/âge/catégories) + grille résultats
-Partenaires (/partenaires)	Filtres zone SR/SA + catégorie (affiche uniquement SA)
+Le projet utilise **LibreTranslate** afin de générer automatiquement les traductions.
 
-🎨 Charte Graphique
+## Fonctionnement
 
-Rose	#E61171	Hero, boutons, accents
-Pêche	#FFD1B5	Fonds alternés
-Rose pâle	#FFCEE4	Badges
-Texte	#2E2F30	Corps de texte
-Fond	#FFF8F4	Pages agenda/partenaires
-Orange	#FF863D	Flèches carrousel
-Typo: Montserrat (bold pour titres, tracking-[0.2px])
+```
+Texte source (Français)
+        │
+        ▼
+Glossaire métier
+        │
+        ▼
+LibreTranslate
+        │
+        ▼
+Anglais
+Allemand
+Italien
+```
 
-⚠️ Pièges Connus
-Problème	                            Solution
-Casse composants (Windows)	Renommer en 2 temps + supprimer .nuxt
-TypeScript strict (array[i] = T|undefined)	Fallback : array[i] ?? defaut
-Port Docker occupé	Vérifier docker ps, changer .env
-LibreTranslate lent	1er démarrage = téléchargement modèles (5-10 min)
+Les textes français sont stockés dans :
 
-📦 Assets Requis
-text
-/public/images/
-├── famille.jpeg
-├── logo_diefamilie.png
-├── logo_lafamilyshop.png
-├── icones/menu/*.png      # 10 icônes
-├── selection/1-4.jpeg
-├── nouveautes/1-8.jpeg
-└── logos/*.png            # 26 logos partenaires
+```
+app/data/staticTexts.ts
+```
 
-🔄 Commandes Utiles
-bash
-# Développement
+Les termes spécifiques au métier sont corrigés grâce au glossaire :
+
+```
+app/data/translationGlossary.ts
+```
+
+---
+
+# 📄 Pages principales
+
+## 🏠 Accueil (`/`)
+
+- Hero
+- Carrousel Sélection
+- Nouveautés
+- Coups de cœur
+- Newsletter
+
+---
+
+## 📅 Agenda (`/agenda`)
+
+Fonctionnalités :
+
+- Recherche par date
+- Filtre par canton
+- Filtre par âge
+- Filtre par catégorie
+- Affichage sous forme de grille
+
+---
+
+## 🤝 Partenaires (`/partenaires`)
+
+Fonctionnalités :
+
+- Filtre par région (SR / SA)
+- Filtre par catégorie
+- Affichage actuel des partenaires **SA uniquement**
+
+---
+
+# 🎨 Charte graphique
+
+| Élément | Couleur |
+|----------|----------|
+| Rose principal | `#E61171` |
+| Orange | `#FF863D` |
+| Pêche | `#FFD1B5` |
+| Rose pâle | `#FFCEE4` |
+| Texte | `#2E2F30` |
+| Fond | `#FFF8F4` |
+
+### Typographie
+
+- **Montserrat**
+- Titres en **Bold**
+- `tracking-[0.2px]`
+
+---
+
+# 📦 Ressources (Assets)
+
+```
+public/
+└── images/
+    ├── famille.jpeg
+    ├── logo_diefamilie.png
+    ├── logo_lafamilyshop.png
+    ├── icones/
+    │     └── menu/
+    ├── selection/
+    ├── nouveautes/
+    └── logos/
+```
+
+Le projet utilise notamment :
+
+- images d'accueil
+- logos partenaires
+- icônes du menu
+- images des carrousels
+
+---
+
+# 🔄 Commandes utiles
+
+## Développement
+
+```bash
 npm run dev
 npm run build
 npm run preview
+```
 
-# Git
+---
+
+## Git
+
+```bash
 git add .
+
 git commit -m "message"
-git push -u origin master
 
-# Docker (LibreTranslate)
+git push origin master
+```
+
+---
+
+## Docker
+
+Démarrer LibreTranslate
+
+```bash
 docker start libretranslate
+```
+
+Arrêter
+
+```bash
 docker stop libretranslate
-docker logs libretranslate -f
+```
 
-# Nettoyage
+Afficher les logs
+
+```bash
+docker logs -f libretranslate
+```
+
+---
+
+## Nettoyer Nuxt
+
+Windows PowerShell
+
+```powershell
 Remove-Item -Recurse -Force .nuxt
+```
+
+Puis
+
+```bash
 npm run dev
+```
 
-✅ À Faire (Priorités)
-□ Créer/versionner package.json
-□ Remplacer données démo → données réelles
-□ Ajouter 26 logos partenaires
-□ Décider page pour partenaires SR (100% Romandie)
-□ Vérifier catégories partenaires (déduites automatiquement)
-□ Intégrer pipeline n8n (scraping)
+---
 
-Repo: https://github.com/Karama2000/LaFam1yPoC
-Site: https://lafamily.ch
+# ⚠️ Problèmes connus
 
+| Problème | Solution |
+|-----------|----------|
+| Erreurs de casse des composants sous Windows | Renommer le fichier en deux étapes puis supprimer `.nuxt` |
+| TypeScript strict (`undefined`) | Utiliser un fallback (`??`) |
+| Port Docker déjà utilisé | Vérifier `docker ps` ou modifier le port dans `.env` |
+| Premier lancement lent | Attendre le téléchargement des modèles LibreTranslate |
+
+---
+
+# 📌 Données de démonstration
+
+Le projet utilise actuellement des données mockées :
+
+- événements
+- partenaires
+- carrousels
+- textes
+
+Ces fichiers se trouvent dans :
+
+```
+app/data/
+```
+
+Ils pourront être remplacés ultérieurement par des données provenant :
+
+- d'une API
+- d'un CMS
+- d'un pipeline n8n
+
+---
+
+# ✅ Travaux restants
+
+- [ ] Versionner définitivement le `package.json`
+- [ ] Remplacer les données de démonstration par les données réelles
+- [ ] Ajouter les 26 logos partenaires
+- [ ] Créer la version Romandie (SR)
+- [ ] Vérifier les catégories partenaires
+- [ ] Intégrer le pipeline n8n pour le scraping
+- [ ] Optimiser les performances de traduction
+- [ ] Ajouter les tests de validation
+
+---
+
+# 📂 Dépôt GitHub
+
+https://github.com/Karama2000/LaFam1yPoC
+
+---
+
+# 🌐 Site web
+
+https://lafamily.ch
+
+---
+
+# 👨‍💻 Technologies utilisées
+
+- Nuxt 3
+- Vue 3
+- TypeScript
+- Tailwind CSS
+- Docker
+- LibreTranslate
+- Tabler Icons
+
+---
+
+## 📄 Licence
+
+Projet réalisé dans le cadre du développement du **PoC LaFamily / DieFamilie**.

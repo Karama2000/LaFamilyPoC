@@ -1,75 +1,115 @@
-# Nuxt Minimal Starter
+📚 Documentation - diefamilie.ch / lafamily.ch
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+🏗️ Stack Technique
+Framework: Nuxt 3 + Vue 3 + Composition API
 
-## Setup
+Styling: Tailwind CSS (valeurs arbitraires)
 
-Make sure to install dependencies:
+Icônes: Tabler Icons
 
-```bash
-# npm
+Traduction: LibreTranslate (Docker) + glossaire métier
+
+Routing: Nuxt file-based
+
+TypeScript: Mode strict
+
+🚀 Démarrage Rapide
+bash
+# 1. Installation
 npm install
 
-# pnpm
-pnpm install
+# 2. Variables d'environnement (.env)
+NUXT_PUBLIC_LIBRETRANSLATE_URL=http://localhost:5003
 
-# yarn
-yarn install
+# 3. Démarrer LibreTranslate
+docker run -d --name libretranslate -p 5003:5000 libretranslate/libretranslate
 
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+# 4. Lancer le projet
 npm run dev
 
-# pnpm
-pnpm dev
+📁 Structure
+text
+app/
+├── pages/
+│   ├── index.vue          # Accueil
+│   ├── agenda.vue         # Agenda + filtres
+│   └── partenaires.vue    # Partenaires (filtrage SA)
+├── components/            # 16 composants (Header, Footer, Carrousels, Cartes...)
+├── composables/
+│   └── useTranslation.ts  # Traduction FR→EN/DE/IT
+└── data/
+    ├── staticTexts.ts     # Tous les textes fixes (FR)
+    ├── translationGlossary.ts # Overrides métier
+    ├── mockContent.ts     # Démo carrousels
+    ├── agendaData.ts      # 12 événements démo
+    └── partnersData.ts    # 26 partenaires
+🌍 Système de Traduction
+Principe : Textes en FR → traduits à la volée via LibreTranslate
 
-# yarn
-yarn dev
 
-# bun
-bun run dev
-```
+📄 Pages Principales
+Page	Fonctionnalités
+Accueil (/)	Hero + carrousels (sélection/nouveautés) + coups de cœur + newsletter
+Agenda (/agenda)	Recherche dates + filtres (canton/âge/catégories) + grille résultats
+Partenaires (/partenaires)	Filtres zone SR/SA + catégorie (affiche uniquement SA)
 
-## Production
+🎨 Charte Graphique
+Couleur	Code	Usage
+Rose	#E61171	Hero, boutons, accents
+Pêche	#FFD1B5	Fonds alternés
+Rose pâle	#FFCEE4	Badges
+Texte	#2E2F30	Corps de texte
+Fond	#FFF8F4	Pages agenda/partenaires
+Orange	#FF863D	Flèches carrousel
+Typo: Montserrat (bold pour titres, tracking-[0.2px])
 
-Build the application for production:
+⚠️ Pièges Connus
+Problème	Solution
+Casse composants (Windows)	Renommer en 2 temps + supprimer .nuxt
+TypeScript strict (array[i] = T|undefined)	Fallback : array[i] ?? defaut
+Port Docker occupé	Vérifier docker ps, changer .env
+LibreTranslate lent	1er démarrage = téléchargement modèles (5-10 min)
 
-```bash
-# npm
+📦 Assets Requis
+text
+/public/images/
+├── famille.jpeg
+├── logo_diefamilie.png
+├── logo_lafamilyshop.png
+├── icones/menu/*.png      # 10 icônes
+├── selection/1-4.jpeg
+├── nouveautes/1-8.jpeg
+└── logos/*.png            # 26 logos partenaires
+
+🔄 Commandes Utiles
+bash
+# Développement
+npm run dev
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
 npm run preview
 
-# pnpm
-pnpm preview
+# Git
+git add .
+git commit -m "message"
+git push -u origin master
 
-# yarn
-yarn preview
+# Docker (LibreTranslate)
+docker start libretranslate
+docker stop libretranslate
+docker logs libretranslate -f
 
-# bun
-bun run preview
-```
+# Nettoyage
+Remove-Item -Recurse -Force .nuxt
+npm run dev
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+✅ À Faire (Priorités)
+□ Créer/versionner package.json
+□ Remplacer données démo → données réelles
+□ Ajouter 26 logos partenaires
+□ Décider page pour partenaires SR (100% Romandie)
+□ Vérifier catégories partenaires (déduites automatiquement)
+□ Intégrer pipeline n8n (scraping)
+
+Repo: https://github.com/Karama2000/LaFam1yPoC
+Site: https://lafamily.ch
+

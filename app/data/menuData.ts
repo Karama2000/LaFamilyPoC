@@ -6,7 +6,7 @@ export interface MenuLink {
 
 // "Je cherche..." — chaque item pointe vers /blog filtré par catégorie d'article
 export const searchCategories: MenuLink[] = [
-  { key: 'catGrossesse', icon: 'grossesse', descriptionKey: 'Tout ce qu’il faut savoir pour vivre sereinement la grossesse et préparer l’arrivée de bébé.Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock,' },
+  { key: 'catGrossesse', icon: 'grossesse', descriptionKey: 'Tout ce qu’il faut savoir pour vivre sereinement la grossesse et préparer l’arrivée de bébé.Contrary to popular belief.' },
   { key: 'catBebe', icon: 'bebe', descriptionKey: ' Conseils, services et ressources pour accompagner bébé dans ses premiers mois et ses premières années.' },
   { key: 'catPetiteEnfance', icon: 'petite enfance', descriptionKey: 'Des ressources et activités pour accompagner les enfants dans leurs premières années.' },
   { key: 'catEnfance', icon: 'enfance', descriptionKey: 'Services, activités et informations pour accompagner les enfants au quotidien et dans leur développement.' },

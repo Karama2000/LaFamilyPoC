@@ -112,6 +112,7 @@ export const baseTexts: Record<string, string> = {
   filterEtudes: "Études",
   filterIT: "Digital",
   filterClose: "Fermer",
+  filterCampsDuJour:"Camps du jour",
 
   // Libellés des tranches d'âge
   ageBebe: "Bébé",

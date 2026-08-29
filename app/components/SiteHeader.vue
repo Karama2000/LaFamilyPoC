@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
                 variant="categDesktop"
                 class="!flex-row !justify-start !gap-4 !text-left !py-6 !px-6"
                 :to="{
-                  path: '/agenda',
+                  path: '/menu/agenda',
                   query: { categorie: 'activite', sousCategorie: item.key },
                 }"
               >
@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
                 variant="categDesktop"
                 class="!flex-row !justify-start !gap-4 !text-left !py-6 !px-6"
                 :to="{
-            path: '/agenda',
+            path: '/menu/agenda',
             query: {
               categorie: item.key === 'vacCamps' ? 'campLogement' : 'campJour',
             },
@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
                 variant="categDesktop"
                 class="!flex-row !justify-start !gap-4 !text-left !py-6 !px-6"
                 :to="{
-                  path: '/agenda',
+                  path: '/menu/agenda',
                   query: { categorie: 'cours', sousCategorie: item.key },
                 }"
               >
@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- ============ DEVENIR PARTENAIRE ============ -->
-      <BaseButton variant="navMenuDevPart" to="/devenirPartenaire">
+      <BaseButton variant="navMenuDevPart" to="/menu/devenirPartenaire">
         {{ t("navPartenaire") }}
       </BaseButton>
     </nav>

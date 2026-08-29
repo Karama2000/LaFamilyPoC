@@ -3,32 +3,7 @@
 <!-- DESCRIPTION : Liste des articles du blog "Nos nouveautés"     -->
 <!-- avec filtre par catégorie (multi-sélection, même pattern que  -->
 <!-- l'agenda et les partenaires).                                 -->
-<!--                                                                -->
-<!-- MODIFICATIONS (version desktop, MOBILE INCHANGÉ) :            -->
-<!-- 1. Ajout de la bannière rose translucide desktop dans le hero -->
-<!--    (comme article.vue / partenaires.vue / agenda.vue).        -->
-<!-- 2. Sidebar CoupsDeCoeurSidebar : en parallèle (flex desktop)  -->
-<!--    de la carte "Raffiner votre recherche" ET de la 1ère ligne -->
-<!--    d'articles (3 premiers résultats). C'est ce bloc conjoint  -->
-<!--    qui détermine la hauteur visuelle de la sidebar, comme sur -->
-<!--    la maquette (les cartes vertes/roses descendent jusqu'à    -->
-<!--    peu près la fin de la 1ère ligne de résultats).             -->
-<!-- 3. Les articles au-delà des 3 premiers (s'il y en a) sortent  -->
-<!--    de ce conteneur flex et repassent en PLEINE LARGEUR         -->
-<!--    d'écran, sans la contrainte de la sidebar à droite.         -->
-<!-- 4. Carte "Raffiner votre recherche" redessinée comme le        -->
-<!--    design : grille de catégories en 5 colonnes sur desktop     -->
-<!--    (au lieu de 2), et le bouton "Réinitialiser" aligné à       -->
-<!--    droite sur la même ligne que les chips de filtres actifs.   -->
-<!-- 5. Sur mobile (< md), tout reste identique à l'original :      -->
-<!--    grille 2 colonnes, pas de sidebar, "Réinitialiser" dans le  -->
-<!--    bloc résultats — aucune classe md: ne change le rendu       -->
-<!--    en dessous de 768px.                                        -->
-<!--                                                                -->
-<!-- AUCUNE MODIFICATION REQUISE DANS BaseButton.vue :              -->
-<!-- les variantes "articleCategory" (grille catégories) et        -->
-<!-- "chip" (pilules de filtres actifs) correspondent déjà          -->
-<!-- exactement au design fourni.                                   -->
+<!--      
 <!-- ============================================================ -->
 <script setup lang="ts">
 import { articlesFR, articleCategories } from "~/data/articleData";
@@ -73,9 +48,6 @@ const filteredArticles = computed(() => {
   if (!activeCategories.value.length) return articlesFR;
   return articlesFR.filter((a) => activeCategories.value.includes(a.category));
 });
-
-
-
 </script>
 
 <template>
@@ -124,10 +96,8 @@ const filteredArticles = computed(() => {
         class="relative z-20 px-5 md:px-7 pt-2 pb-20 md:pb-10 flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-8"
       >
         <div class="flex flex-col gap-2 md:gap-3 md:max-w-[420px] md:shrink-0">
-          
-          <BaseTitle size="TitrePage">  {{ t("blogTitle") }}</BaseTitle>
+          <BaseTitle size="TitrePage"> {{ t("blogTitle") }}</BaseTitle>
           <BaseSubtitle size="description" tag="p" color="#FFCEE4">
-          
             {{ t("blogSubtitle") }}
           </BaseSubtitle>
         </div>
@@ -161,8 +131,13 @@ const filteredArticles = computed(() => {
               box-shadow: 0 5px 10px rgba(0, 0, 0, 0.08);
             "
           >
-            
-            <BaseSubtitle size="description" tag="p" class="!text-sm font-bold" color="#e61171">{{ t("blogRefineSearch") }}</BaseSubtitle>
+            <BaseSubtitle
+              size="description"
+              tag="p"
+              class="!text-sm font-bold"
+              color="#e61171"
+              >{{ t("blogRefineSearch") }}</BaseSubtitle
+            >
 
             <!--
               Filtres actifs : chips à gauche, "Réinitialiser" aligné à
@@ -245,11 +220,11 @@ const filteredArticles = computed(() => {
         <section>
           <div class="flex items-center justify-between mb-4">
             <BaseText
-            size="caption"
-            bold
-            color="#e61171"
-            class="!font-semibold text-[14px]"
-          >
+              size="caption"
+              bold
+              color="#e61171"
+              class="!font-semibold text-[14px]"
+            >
               {{ filteredArticles.length }} {{ t("agendaResultsSuffix") }}
             </BaseText>
             <button
@@ -281,17 +256,11 @@ const filteredArticles = computed(() => {
 
       <!-- ---------- SIDEBAR "COUPS DE CŒUR" : desktop uniquement ---------- -->
       <CoupsDeCoeurSidebar
-        class="hidden md:flex "
+        class="hidden md:flex"
         sticky-top="md:top-6"
         :reference-height="referenceHeight"
       />
     </div>
-
-    <!-- ============================================================ -->
-    <!-- ARTICLES RESTANTS : PLEINE LARGEUR, hors contrainte sidebar   -->
-    <!-- Ne s'affiche que s'il reste des articles au-delà des 3        -->
-    <!-- premiers déjà montrés ci-dessus.                               -->
-    <!-- ============================================================ -->
 
     <NewsletterSection :t="t" />
     <SiteFooter :t="t" />

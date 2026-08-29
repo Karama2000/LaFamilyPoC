@@ -16,17 +16,27 @@ const categoryLabel: Record<AgendaEvent["categorie"], string> = {
 
 // Le back fournit en priorité le libellé exact saisi dans le Sheet.
 const badgeLabel = computed(() => {
-  if (props.event.categorieDetaillee?.trim()) return props.event.categorieDetaillee;
-  if (props.event.categorieLabel?.trim()) return props.event.categorieLabel;
-  if (props.event.sousCategorie?.trim()) return props.t(props.event.sousCategorie);
+  if (props.event.categorieDetaillee?.trim()) {
+    return props.event.categorieDetaillee;
+  }
+
+  if (props.event.categorieLabel?.trim()) {
+    return props.event.categorieLabel;
+  }
+
+  if (props.event.sousCategorie?.trim()) {
+    return props.t(props.event.sousCategorie);
+  }
+
   return props.t(categoryLabel[props.event.categorie]);
 });
 
 // Le back regroupe les lignes qui partagent le même titre.
-const repeatCount = computed(() =>
-  (props.event.autresDates?.length ?? 0) +
-  (props.event.autresAdresses?.length ?? 0) +
-  (props.event.autresLieuxDates?.length ?? 0),
+const repeatCount = computed(
+  () =>
+    (props.event.autresDates?.length ?? 0) +
+    (props.event.autresAdresses?.length ?? 0) +
+    (props.event.autresLieuxDates?.length ?? 0),
 );
 
 const repeatLabel = computed(() =>
@@ -35,6 +45,7 @@ const repeatLabel = computed(() =>
 
 function handleImageError(event: Event) {
   const image = event.target as HTMLImageElement;
+
   image.onerror = null;
   image.src = "/images/nouveautes/1.jpeg";
 }
@@ -42,6 +53,7 @@ function handleImageError(event: Event) {
 
 <template>
   <BaseCard variant="agenda" class="group h-full flex flex-col">
+    <!-- IMAGE -->
     <template #image>
       <div class="relative aspect-[4/3] overflow-hidden">
         <img
@@ -52,59 +64,114 @@ function handleImageError(event: Event) {
           @error="handleImageError"
         />
 
-        <div class="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center gap-1.5">
-          <BaseButton variant="badge">
-            {{ badgeLabel }}
-          </BaseButton>
-          <span
-            v-if="repeatCount > 0"
-            class="inline-flex items-center gap-1 rounded-[5px] px-2.5 py-1 text-[11px] font-bold tracking-[0.2px]"
-            style="background:#e61171;color:#ffffff"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M17 2.1 21 6l-4 3.9" />
-              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-              <path d="m7 21.9-4-3.9 4-3.9" />
-              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-            </svg>
-            Se répète
-          </span>
+        <!-- badge categorie -->
+        <div
+          class="absolute top-3 left-3 z-10 rounded-full px-3 py-1 text-xs font-bold"
+          style="background: #ffffff; color: #e61171"
+        >
+          {{ t(categoryLabel[event.categorie]) }}
         </div>
       </div>
     </template>
 
+    <!-- CONTENU -->
     <div class="flex flex-col flex-1 gap-2">
+      <!-- TITRE : hauteur fixe -->
       <div class="h-[40px] shrink-0">
         <BaseTitle size="card" tag="h3" color="#e61171" class="leading-snug">
           {{ event.titre }}
         </BaseTitle>
       </div>
 
-      <div class="h-[18px] shrink-0 flex items-center gap-1.5 pt-3" style="color:#2e2f30">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E61171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">
-          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" />
+      <!-- LIEU : hauteur fixe -->
+      <div
+        class="h-[18px] shrink-0 flex items-center gap-1.5 pt-3"
+        style="color: #2e2f30"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#E61171"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="shrink-0"
+          aria-hidden="true"
+        >
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+          <circle cx="12" cy="10" r="3" />
         </svg>
+
         <BaseText tag="span" size="caption" color="#2e2f30" class="truncate">
           {{ event.lieu || "Lieu non spécifié" }}
         </BaseText>
       </div>
 
-      <div class="h-[18px] shrink-0 flex items-center gap-1.5 pt-3" style="color:#2e2f30">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E61171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+      <!-- DATE : hauteur fixe -->
+      <div
+        class="h-[18px] shrink-0 flex items-center gap-1.5 pt-3"
+        style="color: #2e2f30"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#E61171"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="shrink-0"
+          aria-hidden="true"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        <BaseText tag="span" size="caption" bold color="#2e2f30" class="truncate !font-semibold">
+
+        <BaseText
+          tag="span"
+          size="caption"
+          bold
+          color="#2e2f30"
+          class="truncate !font-semibold"
+        >
           {{ event.date || "Date non spécifiée" }}
         </BaseText>
       </div>
 
-      <p v-if="repeatCount > 0" class="mt-2 text-[12px] font-semibold" style="color:#e61171">
-        + {{ repeatCount }} {{ repeatLabel }}
-      </p>
+      <!--
+        OCCURRENCES
 
+        On conserve l'information du back,
+        mais on réserve toujours la même hauteur.
+
+        Ainsi, même si certaines cartes n'ont pas
+        d'occurrences, le bouton reste exactement
+        au même emplacement.
+      -->
+      <div class="h-[20px] shrink-0 mt-2">
+        <p
+          v-if="repeatCount > 0"
+          class="text-[12px] font-semibold"
+          style="color: #e61171"
+        >
+          + {{ repeatCount }} {{ repeatLabel }}
+        </p>
+      </div>
+
+      <!--
+        BOUTON
+
+        mt-auto le pousse toujours vers le bas
+        de la carte.
+      -->
       <BaseButton
         variant="peach"
-        :to="externalLink || `/agenda/${event.id}`"
+        :to="externalLink || `/agendaFolder/${event.id}`"
         class="tracking-[0.2px] self-start mt-auto"
       >
         {{ t("enSavoirPlus") }}

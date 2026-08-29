@@ -71,7 +71,7 @@ const categoryLabel = computed(
 
         <!-- Lien -->
         <NuxtLink
-          :to="`/article/${article.id}`"
+          :to="`/articleFolder/${article.id}`"
           class="flex items-center gap-1 text-[11.5px] font-bold shrink-0"
           style="color: #e61171"
         >

@@ -1,0 +1,51 @@
+/* ============================================================ */
+/* variables.css                                                */
+/* Palette de couleurs et ombres utilisées partout dans le site. */
+/* Change une couleur ICI et elle se répercute sur tout le site. */
+/* ============================================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Couleurs principales */
+  --color-primary: #e61171;       /* Rose principal (titres, boutons, accents) */
+  --color-primary-soft: #ffcee4;  /* Rose clair (chips, fonds actifs légers) */
+  --color-peach: #ffd1b5;         /* Pêche (badges, bordures) */
+  --color-peach-light: #ffe4d3;   /* Pêche très clair (bordures discrètes) */
+  --color-cream: #fff8f4;         /* Fond crème (sections) */
+  --color-cream-alt: #fdf1ea;     /* Variante crème (hero partenaire) */
+  --color-serenade: #fff0e5;      /* Fond icônes rondes coordonnées */
+  --color-text-dark: #2e2f30;     /* Texte foncé (Shark) */
+  --color-text-gray: #888888;     /* Texte gris (labels secondaires) */
+  --color-white: #ffffff;
+
+  /* Ombres réutilisées */
+  --shadow-card: 0 10px 20px rgba(230, 17, 113, 0.06);
+  --shadow-card-strong: 0 13px 19px rgba(0, 0, 0, 0.07);
+  --shadow-dropdown: 0 16px 40px rgba(230, 17, 113, 0.16);
+
+  /* Ombre du bouton principal (CTA "choisir région", etc.) */
+  --shadow-btn-primary: 0 8px 20px rgba(230, 17, 113, 0.3);
+}
+
+/* ============================================================ */
+/* Règle typo globale : "Majuscule pour la 1ère lettre seulement" */
+/* ============================================================ */
+/* On met tout en minuscule, puis on force la 1ère lettre du texte  */
+/* en majuscule via ::first-letter. Fonctionne en pur CSS, sans JS, */
+/* même si le texte vient d'une variable/traduction dynamique.      */
+/* Usage : <h1 class="cap-first">MON TITRE</h1> -> "Mon titre"      */
+.cap-first {
+  text-transform: lowercase;
+}
+.cap-first::first-letter {
+  text-transform: uppercase;
+}
+/*  */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 280px));
+  justify-content: center; /* centre la dernière ligne incomplète */
+  gap: 1.5rem; /* 24px, ajuste selon ton design */
+}

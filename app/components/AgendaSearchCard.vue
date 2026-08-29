@@ -4,47 +4,93 @@
   Carte de recherche affichée au-dessus de l'agenda : contient une icône
   loupe + deux sélecteurs de date (date de début / date de fin) qui
   utilisent le composant AgendaDatePicker.
+
+  MODIFICATION :
+  Ajout d'un bouton "Chercher" affiché uniquement lorsque les 2 dates
+  (début ET fin) sont renseignées. Le clic émet un événement "search"
+  vers le parent (qui peut s'en servir pour, par ex., faire défiler
+  la page jusqu'aux résultats).
 -->
 <script setup lang="ts">
-defineProps<{
-  t: (key: string) => string   // fonction de traduction (i18n)
-  dateFrom: string             // date de début sélectionnée (format ISO ou vide)
-  dateTo: string                // date de fin sélectionnée (format ISO ou vide)
-}>()
+// "props" est nommé (const props = ...) pour pouvoir être lu dans le computed ci-dessous
+const props = defineProps<{
+  t: (key: string) => string; // fonction de traduction (i18n)
+  dateFrom: string; // date de début sélectionnée (format ISO ou vide)
+  dateTo: string; // date de fin sélectionnée (format ISO ou vide)
+}>();
 
-// Événement remonté au parent quand une des deux dates change
+// Événements remontés au parent
 const emit = defineEmits<{
-  'set-date': [field: 'dateFrom' | 'dateTo', value: string]
-}>()
+  "set-date": [field: "dateFrom" | "dateTo", value: string];
+  search: []; // émis quand l'utilisateur clique sur le bouton "Chercher"
+}>();
+
+// Le bouton "Chercher" ne s'affiche que si les 2 dates (début ET fin)  sont renseignées ou au moins un filtre est selectionné
+const canSearch = computed(() => !!props.dateFrom && !!props.dateTo); //a modifier
 </script>
-
 <template>
-  <div class="w-full bg-white rounded-[10px] shadow-[0_13px_19px_rgba(0,0,0,0.08)] px-5 py-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-
-    <!-- Icône loupe + titre de la carte -->
-    <div class="flex items-center gap-2 shrink-0" style="color:#E61171">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E61171" stroke-width="2.3"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-      <span class="font-bold text-sm whitespace-nowrap">{{ t('agendaSearchTitle') }}</span>
+  <div
+    class="relative w-full rounded-[10px]  px-4 py-4 md:px-5 md:py-4 flex flex-col md:flex-row md:items-center gap-3 bg-[#FFEDE3] md:bg-[#FFEDE3]" 
+  >
+    <!-- Titre -->
+    <div class="flex items-center gap-2 shrink-0 md:w-auto">
+      <span class="font-bold text-sm whitespace-nowrap text-[#E61171]">
+        {{ t("agendaSearchTitle") }}
+      </span>
     </div>
 
-    <!-- Deux sélecteurs de date côte à côte (empilés sur mobile) -->
-    <div class="flex-1 flex flex-col sm:flex-row gap-3">
+    <!-- Dates -->
+    <div class="flex-1 min-w-0 flex flex-col sm:flex-row gap-3 md:items-center">
       <!-- Date de début -->
-      <AgendaDatePicker
-        :t="t"
-        :label="t('agendaSearchDateFrom')"
-        :model-value="dateFrom"
-        @update:model-value="(v: string) => emit('set-date', 'dateFrom', v)" />
+      <div class="flex-1 min-w-0">
+        <AgendaDatePicker
+          :t="t"
+          :label="t('agendaSearchDateFrom')"
+          :model-value="dateFrom"
+          @update:model-value="(v: string) => emit('set-date', 'dateFrom', v)"
+        />
+      </div>
+
       <!-- Date de fin -->
-      <AgendaDatePicker
-        :t="t"
-        :label="t('agendaSearchDateTo')"
-        :model-value="dateTo"
-        @update:model-value="(v: string) => emit('set-date', 'dateTo', v)" />
+      <div class="flex-1 min-w-0">
+        <AgendaDatePicker
+          :t="t"
+          :label="t('agendaSearchDateTo')"
+          :model-value="dateTo"
+          :highlight-date="dateFrom"
+          @update:model-value="(v: string) => emit('set-date', 'dateTo', v)"
+        />
+      </div>
     </div>
+
+    <!-- Bouton Chercher -->
+    <BaseButton
+      v-if="canSearch"
+      variant="rosePale"
+      type="button"
+      class="!w-[100px] !h-[30px] !text-[14px] shrink-0 self-center md:self-auto"
+      @click="emit('search')"
+    >
+      <span class="whitespace-nowrap">
+        {{ t("agendaSearchBtn") }}
+      </span>
+
+      <span class="w-5 h-5 flex items-center justify-center shrink-0">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#E61171"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-4-4" />
+        </svg>
+      </span>
+    </BaseButton>
   </div>
 </template>

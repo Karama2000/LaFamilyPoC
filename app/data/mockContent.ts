@@ -17,7 +17,7 @@ export const selectionsFR: ContentItem[] = [
 
 // Contenu du carrousel "Nouveautés" (NouveautesSection.vue)
 export const nouveautesFR: ContentItem[] = [
-  { titre: 'Titre 1', description: "Description brève de l'activité 1.", image: '/images/nouveautes/1.jpeg' },
+  { titre: 'Titre 1', description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets.", image: '/images/nouveautes/1.jpeg' },
   { titre: 'Titre 2', description: "Description brève de l'activité 2.", image: '/images/nouveautes/2.jpeg' },
   { titre: 'Titre 3', description: "Description brève de l'activité 3.", image: '/images/nouveautes/3.jpeg' },
   { titre: 'Titre 4', description: "Description brève de l'activité 4.", image: '/images/nouveautes/4.jpeg' },

@@ -53,7 +53,7 @@ onUnmounted(() => {
 
 <template>
   <!-- Visible uniquement sur mobile (masqué à partir du breakpoint md) -->
-  <div class="md:hidden relative z-20 overflow-hidden py-4 px-[18px]"
+  <div class="relative z-20 overflow-hidden py-4 px-[18px]"
     style="
       -webkit-mask-image: linear-gradient(to right, transparent 0, black 18px, black calc(100% - 18px), transparent 100%);
       mask-image: linear-gradient(to right, transparent 0, black 18px, black calc(100% - 18px), transparent 100%);

@@ -22,14 +22,15 @@ const categoryLabel = computed(
 </script>
 
 <template>
-  <BaseCard variant="agenda" class="h-full flex flex-col">
+  <BaseCard variant="agenda" class="h-full flex flex-col group">
     <!-- Image -->
     <template #image>
-      <div class="w-full aspect-[16/10]">
+      <div class=" w-full aspect-[16/10]">
         <img
           :src="article.image"
           :alt="article.titre"
-          class="w-full h-full object-cover block"
+          class="w-full h-full object-cover block transition-transform duration-300 group-hover:scale-105"
+          l*
         />
       </div>
     </template>

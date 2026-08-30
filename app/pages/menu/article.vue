@@ -14,7 +14,9 @@
 <!--    qui manquait — seule la section Partenaires existait.        -->
 <!-- ====================================================== -->
 <script setup lang="ts">
-import { articlesFR, articleCategories } from "~/data/articleData";
+import { articleCategories } from "~/data/articleData";
+const { data: articlesFR } = await useArticles();
+
 import { searchCategories, searchCategoryToArticleKey } from "~/data/menuData";
 import { agendaEventsFR } from "~/data/agendaData";
 import { partnersFR } from "~/data/partnersData";
@@ -30,11 +32,15 @@ function onLangChange(lang: string) {
   setLang(lang as any, [], []);
 }
 
+
+
 // Catégorie sélectionnée (clé technique de articleCategories, ex: 'grossesse')
 const selectedCategory = computed(() => {
   const category = route.query.category;
   return typeof category === "string" ? category : "";
 });
+
+
 
 const categoryLabel = computed(() => {
   const c = articleCategories.find((c) => c.key === selectedCategory.value);
@@ -50,8 +56,8 @@ const categoryDescription = computed(() => {
 });
 
 const filteredArticles = computed(() => {
-  if (!selectedCategory.value) return articlesFR;
-  return articlesFR.filter((a) => a.category === selectedCategory.value);
+  if (!selectedCategory.value) return articlesFR.value;
+  return articlesFR.value.filter((a) => a.category === selectedCategory.value);
 });
 
 // ---------- Agenda en relation ----------
@@ -93,8 +99,6 @@ const relatedPartners = computed(() => {
 });
 
 // Scroll doux vers une section de la même page (Agenda / Partenaires),
-// utilisé même si la section visée n'a aucun résultat pour l'instant
-// (l'utilisateur verra alors le message "aucun résultat" de cette section).
 function scrollToSection(id: string) {
   document
     .getElementById(id)

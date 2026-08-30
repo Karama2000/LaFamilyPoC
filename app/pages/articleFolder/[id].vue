@@ -4,11 +4,13 @@
 <!-- Route dynamique Nuxt : /article/:id (id = Article.id)       -->
 <!-- ============================================================ -->
 <script setup lang="ts">
-import { articlesFR, articleCategories } from "~/data/articleData";
+import {  articleCategories } from "~/data/articleData";
 import { agendaEventsFR } from "~/data/agendaData";
 import { partnersFR } from "~/data/partnersData";
 import CoupsDeCoeurSidebar from "~/components/CoupsDeCoeurSidebar.vue";
 import { useReferenceHeight } from "~/composables/useReferenceHeight";
+
+const { data: articlesFR } = await useArticles();
 
 const { referenceRef, referenceHeight } = useReferenceHeight();
 
@@ -19,9 +21,7 @@ function onLangChange(lang: string) {
   setLang(lang as any, [], []);
 }
 
-const article = computed(() =>
-  articlesFR.find((a) => a.id === route.params.id),
-);
+const article = computed(() => articlesFR.value.find((a) => a.id === route.params.id));
 
 if (!article.value) {
   await navigateTo("/blog");
@@ -38,12 +38,12 @@ const categoryLabel = computed(() =>
 
 // À lire aussi : autres articles de la même catégorie, article courant exclu
 const relatedArticles = computed(() =>
-  articlesFR
+  articlesFR.value                                    // ← .value ajouté, c'était le bug
     .filter(
       (a) =>
         a.category === article.value?.category && a.id !== article.value?.id,
     )
-    .slice(0, 2),
+    .slice(0, 4),
 );
 
 // Agenda lié
@@ -230,8 +230,8 @@ function scrollToSection(id: string) {
                   style="background: #fff8f4"
                 >
                   <img
-                    :src="block.src"
-                    :alt="block.alt || ''"
+                    :src="article.image" 
+                    :alt="article.titre"
                     class="w-full h-full object-cover block"
                   />
                 </div>

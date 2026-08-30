@@ -6,10 +6,11 @@
 <!--      
 <!-- ============================================================ -->
 <script setup lang="ts">
-import { articlesFR, articleCategories } from "~/data/articleData";
+import {  articleCategories } from "~/data/articleData";
 import CoupsDeCoeurSidebar from "~/components/CoupsDeCoeurSidebar.vue";
 import { useReferenceHeight } from "~/composables/useReferenceHeight";
 
+const { data: articlesFR } = await useArticles();
 const { referenceRef, referenceHeight } = useReferenceHeight();
 
 const { currentLang, t, setLang } = useTranslation();
@@ -45,8 +46,8 @@ function removeChip(key: string) {
 }
 
 const filteredArticles = computed(() => {
-  if (!activeCategories.value.length) return articlesFR;
-  return articlesFR.filter((a) => activeCategories.value.includes(a.category));
+  if (!activeCategories.value.length) return articlesFR.value;
+  return articlesFR.value.filter((a) => activeCategories.value.includes(a.category));
 });
 </script>
 
@@ -113,9 +114,7 @@ const filteredArticles = computed(() => {
     <!-- ============================================================ -->
     <!-- BLOC PRINCIPAL : filtre + 1ère ligne d'articles + sidebar     -->
     <!-- La sidebar est en flex desktop UNIQUEMENT (md:flex) à côté   -->
-    <!-- de ce bloc — sur mobile, "md:flex" ne s'active pas donc tout -->
-    <!-- reste empilé verticalement comme avant.                      -->
-    <!-- ============================================================ -->
+      <!-- ============================================================ -->
     <div
       class="px-5 md:px-7 mx-auto -mt-0 md:mt-5 relative z-10 md:flex md:gap-8 md:items-start"
     >
@@ -216,7 +215,7 @@ const filteredArticles = computed(() => {
           </div>
         </section>
 
-        <!-- ===== RÉSULTATS : en-tête + articles) ===== -->
+        <!-- ===== RÉSULTATS : en-tête + articles ===== -->
         <section>
           <div class="flex items-center justify-between mb-4">
             <BaseText

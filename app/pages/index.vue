@@ -7,8 +7,31 @@
 //--------------------------------------------------------
 // 1. IMPORTS
 // -------------------------------------------------------
-import { selectionsFR, nouveautesFR } from "~/data/mockContent";
 import { agendaEventsFR } from "~/data/agendaData";
+
+// pages/index.vue — <script setup>
+import type { ContentItem } from "~/data/mockContent";
+import { nouveautesFR } from "~/data/mockContent"; // conservé en repli
+
+interface Article {
+  id: string;
+  titre: string;
+  excerpt: string;
+  image: string;
+}
+
+const { data: apiArticles } = await useFetch<Article[]>("/api/articles");
+
+// Transforme les vrais articles au format attendu par BlogSection,
+// avec repli sur le mock si l'API ne renvoie rien.
+const nouveautes = computed<ContentItem[]>(() => {
+  if (!apiArticles.value?.length) return nouveautesFR;
+  return apiArticles.value.map((a) => ({
+    titre: a.titre,
+    description: a.excerpt,
+    image: a.image,
+  }));
+});
 
 // ----------------------------------------------------------------
 // 2. COMPOSABLES & ÉTAT
@@ -34,11 +57,11 @@ const selections = computed(() =>
  * Nouveautés selon la langue courante
  * Utilise le cache dynamique ou les données françaises par défaut
  */
-const nouveautes = computed(() =>
-  currentLang.value === "fr"
-    ? nouveautesFR
-    : dynamicCache[currentLang.value]?.nouveautes || nouveautesFR,
-);
+// const nouveautes = computed(() =>
+//   currentLang.value === "fr"
+//     ? nouveautesFR
+//     : dynamicCache[currentLang.value]?.nouveautes || nouveautesFR,
+// );
 
 // ----------------------------------------------------------------
 // 4. FONCTIONS

@@ -14,13 +14,14 @@
 <!--    qui manquait — seule la section Partenaires existait.        -->
 <!-- ====================================================== -->
 <script setup lang="ts">
-import { articlesFR, articleCategories } from "~/data/articleData";
+import { articleCategories } from "~/data/articleData";
 import { searchCategories, searchCategoryToArticleKey } from "~/data/menuData";
 import { agendaEventsFR } from "~/data/agendaData";
 import { partnersFR } from "~/data/partnersData";
 import CoupsDeCoeurSidebar from "~/components/CoupsDeCoeurSidebar.vue";
 import { useReferenceHeight } from "~/composables/useReferenceHeight";
 
+const { data: articlesFR } = await useArticles();
 const { referenceRef, referenceHeight } = useReferenceHeight();
 
 const { currentLang, t, setLang } = useTranslation();
@@ -50,8 +51,8 @@ const categoryDescription = computed(() => {
 });
 
 const filteredArticles = computed(() => {
-  if (!selectedCategory.value) return articlesFR;
-  return articlesFR.filter((a) => a.category === selectedCategory.value);
+  if (!selectedCategory.value) return articlesFR.value;
+  return articlesFR.value.filter((a) => a.category === selectedCategory.value);
 });
 
 // ---------- Agenda en relation ----------

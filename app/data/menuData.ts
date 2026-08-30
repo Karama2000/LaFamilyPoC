@@ -8,14 +8,14 @@ export interface MenuLink {
 export const searchCategories: MenuLink[] = [
   { key: 'catGrossesse', icon: 'grossesse', descriptionKey: 'Tout ce qu’il faut savoir pour vivre sereinement la grossesse et préparer l’arrivée de bébé.Contrary to popular belief.' },
   { key: 'catBebe', icon: 'bebe', descriptionKey: ' Conseils, services et ressources pour accompagner bébé dans ses premiers mois et ses premières années.' },
-  { key: 'catPetiteEnfance', icon: 'petite enfance', descriptionKey: 'Des ressources et activités pour accompagner les enfants dans leurs premières années.' },
+  { key: 'catPetiteEnfance', icon: 'petiteEnfance', descriptionKey: 'Des ressources et activités pour accompagner les enfants dans leurs premières années.' },
   { key: 'catEnfance', icon: 'enfance', descriptionKey: 'Services, activités et informations pour accompagner les enfants au quotidien et dans leur développement.' },
   { key: 'catAdolescence', icon: 'adolescence', descriptionKey: 'Des ressources, activités et services pour accompagner les adolescents dans cette période de changement.' },
   { key: 'catScolarite', icon: 'scolarite', descriptionKey: 'Tout pour accompagner les enfants et les jeunes dans leur parcours scolaire et leur réussite.' },
   { key: 'catParents', icon: 'parents', descriptionKey: 'Conseils, services et ressources pour accompagner les parents dans leur quotidien et leur rôle.' },
-  { key: 'catVieDeFamille', icon: 'vie familiale', descriptionKey: 'Des ressources et services pour faciliter la vie familiale et profiter pleinement des moments en famille.' },
+  { key: 'catVieDeFamille', icon: 'vieDeFamille', descriptionKey: 'Des ressources et services pour faciliter la vie familiale et profiter pleinement des moments en famille.' },
   { key: 'catTravail', icon: 'travail', descriptionKey: 'Informations, services et ressources pour concilier vie professionnelle, familiale et personnelle.' },
-  { key: 'catBudgetAssurance', icon: 'budget et assurance', descriptionKey: 'Des informations et services pour mieux gérer le budget familial, les dépenses et les assurances.' },
+  { key: 'catBudgetAssurance', icon: 'assurances', descriptionKey: 'Des informations et services pour mieux gérer le budget familial, les dépenses et les assurances.' },
 ]
 
 // Correspondance clé "Je cherche..." -> clé technique dans articleCategories (articleData.ts)

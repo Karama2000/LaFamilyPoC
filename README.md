@@ -1,4 +1,4 @@
-# LaFamily / DieFamilie - Front-end
+# LaFamily / DieFamilie 
 
 Proof of Concept du portail familial LaFamily / DieFamilie. Ce dépôt contient le front-end Nuxt : accueil, agenda, blog, partenaires, partenariat, navigation responsive et traduction multilingue.
 

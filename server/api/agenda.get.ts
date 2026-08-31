@@ -1,234 +1,317 @@
-import { saveImageFromUrl } from '../utils/imageService'
+import { saveImageFromUrl } from "../utils/imageService";
 
 interface NormalizedAgendaEvent {
-  id: string
-  titre: string
-  lieu: string
-  cantonKey: string
-  date: string
-  dateStart: string
-  dateEnd: string
-  image: string
+  id: string;
+  titre: string;
+  lieu: string;
+  cantonKey: string;
+  date: string;
+  dateStart: string;
+  dateEnd: string;
+  image: string;
   // Clé de la grande catégorie attendue par Nuxt pour les filtres/menu.
   // Valeurs : activite, campLogement, campJour ou cours.
-  categorie: string
+  categorie: string;
   // Libellé BRUT et détaillé de la colonne "Catégorie" du Sheet. Il reste
   // indépendant de la taxonomie du site et est affiché tel quel sur la carte.
   // Exemples : "Course de sport", "Ateliers d'art", "Aventure".
   // Alias explicite conservé dans le payload pour les consommateurs back/front
   // qui préfèrent nommer ce champ selon son rôle métier.
-  categorieDetaillee: string
+  categorieDetaillee: string;
   // Libellé BRUT de la colonne "Catégorie" du Sheet, tel qu'écrit par les
   // workflows n8n (ex: "Ateliers d'art", "Concert", "Théâtre"...), SANS
   // passer par la logique de mots-clés de subCategoryFrom(). Sert à
   // afficher sur la carte la catégorie exacte du Sheet plutôt qu'un libellé
   // générique de repli quand le Sheet utilise une valeur non répertoriée
   // dans cette table (voir AgendaEventCard.vue).
-  categorieLabel: string
-  sousCategorie: string
-  ageKeys: string[]
-  age?: number
-  ageMin?: number
-  ageMax?: number
-  ageLabel?: string
-  partnerId?: number
-  horaires?: string
-  tarif?: string
-  description?: string
-  infoComplementaire?: string
-  contactTel?: string
-  contactEmail?: string
-  siteUrl?: string
-  seoDescription?: string
-  seoKeywords?: string
+  categorieLabel: string;
+  sousCategorie: string;
+  ageKeys: string[];
+  age?: number;
+  ageMin?: number;
+  ageMax?: number;
+  ageLabel?: string;
+  partnerId?: number;
+  horaires?: string;
+  tarif?: string;
+  description?: string;
+  infoComplementaire?: string;
+  contactTel?: string;
+  contactEmail?: string;
+  siteUrl?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
   // Occurrences supplémentaires du même événement (autres dates et/ou
   // autres adresses), affichées dans une section dédiée sur la page détail
   // ET signalées par un badge "Se répète" sur la carte de l'agenda.
-  autresDates?: string[]
-  autresAdresses?: string[]
-  autresLieuxDates?: { lieu: string; date: string }[]
+  autresDates?: string[];
+  autresAdresses?: string[];
+  autresLieuxDates?: { lieu: string; date: string }[];
   // Dates ISO (YYYY-MM-DD) de ces mêmes occurrences supplémentaires, pour
   // permettre au filtre de recherche par dates de matcher un événement dès
   // qu'UNE de ses dates (pas seulement la date principale) tombe dans la
   // période recherchée. Non affiché tel quel : sert uniquement au filtrage.
-  autresDatesISO?: { dateStart: string; dateEnd: string }[]
+  autresDatesISO?: { dateStart: string; dateEnd: string }[];
+  // Indique si l'événement doit apparaître dans le carrousel "Notre
+  // sélection" de la page d'accueil. Alimenté par une colonne du Sheet
+  // (ex: "Sélection", "Mis en avant", "À la une"...). Toute valeur du
+  // type oui/yes/true/1/x est considérée comme "vrai".
+  misEnAvant: boolean;
 }
 
-type RawRow = Record<string, unknown>
+type RawRow = Record<string, unknown>;
 
-const DEFAULT_IMAGE = '/images/famille.jpeg'
-const CACHE_DURATION_MS = 10 * 60 * 1000
+const DEFAULT_IMAGE = "/images/famille.jpeg";
+const CACHE_DURATION_MS = 10 * 60 * 1000;
 
-let cache: { data: NormalizedAgendaEvent[]; fetchedAt: number } | null = null
+let cache: { data: NormalizedAgendaEvent[]; fetchedAt: number } | null = null;
 
 function normalizeKey(input: string): string {
   return input
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '')
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function findValue(row: RawRow, ...wantedKeys: string[]): string {
-  const wanted = wantedKeys.map(normalizeKey)
-  const entry = Object.entries(row).find(([key, raw]) =>
-    wanted.includes(normalizeKey(key)) && raw !== undefined && raw !== null && String(raw).trim(),
-  )
-  return entry ? String(entry[1]).trim() : ''
+  const wanted = wantedKeys.map(normalizeKey);
+  const entry = Object.entries(row).find(
+    ([key, raw]) =>
+      wanted.includes(normalizeKey(key)) &&
+      raw !== undefined &&
+      raw !== null &&
+      String(raw).trim(),
+  );
+  return entry ? String(entry[1]).trim() : "";
 }
 
 function splitValues(input: unknown): string[] {
-  if (Array.isArray(input)) return input.flatMap(splitValues)
-  return String(input ?? '')
+  if (Array.isArray(input)) return input.flatMap(splitValues);
+  return String(input ?? "")
     .split(/[;,|\n]+/)
     .map((item) => item.trim())
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
-function parseOtherLocations(valueToParse: unknown): { lieu: string; date: string }[] {
+function parseOtherLocations(
+  valueToParse: unknown,
+): { lieu: string; date: string }[] {
   if (Array.isArray(valueToParse)) {
     return valueToParse.flatMap((item) => {
-      if (item && typeof item === 'object') {
-        const object = item as Record<string, unknown>
-        const lieu = String(object.lieu ?? object.Lieu ?? object.address ?? object.Adresse ?? '').trim()
-        const date = String(object.date ?? object.Date ?? '').trim()
-        return lieu || date ? [{ lieu, date }] : []
+      if (item && typeof item === "object") {
+        const object = item as Record<string, unknown>;
+        const lieu = String(
+          object.lieu ?? object.Lieu ?? object.address ?? object.Adresse ?? "",
+        ).trim();
+        const date = String(object.date ?? object.Date ?? "").trim();
+        return lieu || date ? [{ lieu, date }] : [];
       }
-      const text = String(item ?? '').trim()
-      const parts = text.split(/\s+(?:le|du|—|-|\|)\s+/i)
-      return text ? [{ lieu: parts[0] ?? text, date: parts.slice(1).join(' ') }] : []
-    })
+      const text = String(item ?? "").trim();
+      const parts = text.split(/\s+(?:le|du|—|-|\|)\s+/i);
+      return text
+        ? [{ lieu: parts[0] ?? text, date: parts.slice(1).join(" ") }]
+        : [];
+    });
   }
-  const text = String(valueToParse ?? '').trim()
-  if (!text) return []
+  const text = String(valueToParse ?? "").trim();
+  if (!text) return [];
   try {
-    const parsed = JSON.parse(text)
-    if (Array.isArray(parsed)) return parseOtherLocations(parsed)
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parseOtherLocations(parsed);
   } catch {
     // Format texte libre utilisé par certaines lignes de feuille.
   }
   return splitValues(text).map((item) => {
-    const [lieu, date = ''] = item.split(/\s+(?:le|du|—|-|\|)\s+/i)
-    return { lieu: lieu?.trim() ?? item, date: date.trim() }
-  })
+    const [lieu, date = ""] = item.split(/\s+(?:le|du|—|-|\|)\s+/i);
+    return { lieu: lieu?.trim() ?? item, date: date.trim() };
+  });
 }
 
 function parseDate(valueToParse: string): string {
-  if (!valueToParse) return ''
-  const iso = valueToParse.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/)
+  if (!valueToParse) return "";
+  const iso = valueToParse.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
   if (iso) {
-    const [, year, month, day] = iso
-    if (year && month && day) return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    const [, year, month, day] = iso;
+    if (year && month && day)
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
-  const european = valueToParse.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/)
+  const european = valueToParse.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
   if (european) {
-    const [, day, month, year] = european
-    if (year && month && day) return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    const [, day, month, year] = european;
+    if (year && month && day)
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
-  return valueToParse
+  return valueToParse;
 }
 
-const AGE_MIN_KEYS = ['Âge Min', 'Age Min', 'ageMin', 'ajmine', 'age mine', 'âge mine', 'âge minimum', 'age minimum']
-const AGE_MAX_KEYS = ['Âge Max', 'Age Max', 'ageMax', 'ajmax', 'age max', 'âge max', 'âge maximum', 'age maximum']
+const AGE_MIN_KEYS = [
+  "Âge Min",
+  "Age Min",
+  "ageMin",
+  "ajmine",
+  "age mine",
+  "âge mine",
+  "âge minimum",
+  "age minimum",
+];
+const AGE_MAX_KEYS = [
+  "Âge Max",
+  "Age Max",
+  "ageMax",
+  "ajmax",
+  "age max",
+  "âge max",
+  "âge maximum",
+  "age maximum",
+];
 
 function numericAgeFromRow(row: RawRow, keys: string[]): number | undefined {
-  const value = findValue(row, ...keys)
-  if (value === '') return undefined
-  const number = Number(value.replace(',', '.'))
-  return Number.isFinite(number) ? number : undefined
+  const value = findValue(row, ...keys);
+  if (value === "") return undefined;
+  const number = Number(value.replace(",", "."));
+  return Number.isFinite(number) ? number : undefined;
 }
 
 function singleAgeFromRow(row: RawRow): number | undefined {
-  const value = findValue(row, 'Âge', 'Age', 'age')
-  if (value === '') return undefined
-  const match = value.match(/^\s*(\d{1,3})(?:[,.]0+)?\s*(?:ans?)?\s*$/i)
-  if (!match) return undefined
-  const age = Number(match[1])
-  return Number.isFinite(age) ? age : undefined
+  const value = findValue(row, "Âge", "Age", "age");
+  if (value === "") return undefined;
+  const match = value.match(/^\s*(\d{1,3})(?:[,.]0+)?\s*(?:ans?)?\s*$/i);
+  if (!match) return undefined;
+  const age = Number(match[1]);
+  return Number.isFinite(age) ? age : undefined;
 }
 
 function ageLabelFromRow(row: RawRow): string | undefined {
-  const age = singleAgeFromRow(row)
-  const min = numericAgeFromRow(row, AGE_MIN_KEYS)
-  const max = numericAgeFromRow(row, AGE_MAX_KEYS)
+  const age = singleAgeFromRow(row);
+  const min = numericAgeFromRow(row, AGE_MIN_KEYS);
+  const max = numericAgeFromRow(row, AGE_MAX_KEYS);
   // Les bornes Âge Min / Âge Max sont prioritaires lorsqu’elles existent.
   if (min !== undefined && max !== undefined) {
-    if (min <= 0 && max >= 99) return 'Tout public'
-    if (min === max) return `${min} an${min > 1 ? 's' : ''}`
-    return `${min} - ${max} ans`
+    if (min <= 0 && max >= 99) return "Tout public";
+    if (min === max) return `${min} an${min > 1 ? "s" : ""}`;
+    return `${min} - ${max} ans`;
   }
-  if (min !== undefined) return `À partir de ${min} ans`
-  if (max !== undefined) return `Jusqu'à ${max} ans`
-  if (age !== undefined) return `${age} an${age > 1 ? 's' : ''}`
+  if (min !== undefined) return `À partir de ${min} ans`;
+  if (max !== undefined) return `Jusqu'à ${max} ans`;
+  if (age !== undefined) return `${age} an${age > 1 ? "s" : ""}`;
 
   // Repli pour les anciennes lignes qui ne possèdent pas encore ces colonnes.
-  const values = splitValues(row.ageKeys ?? row['Age Keys'] ?? row['Âge'] ?? row['Age'] ?? row['Public cible'] ?? row['Public'])
-  const label = values.join(' · ').trim()
-  const normalized = normalizeKey(label)
-  if (/toutpublic|touspublics?|touslespublics?/.test(normalized)) return 'Tout public'
-  if (/famille|familial|familiale/.test(normalized)) return 'Famille'
-  const range = label.match(/(\d+)\s*(?:-|–|—|à|a)\s*(\d+)\s*(?:ans?|años?)?/i)
-  if (range) return `${range[1]} - ${range[2]} ans`
+  const values = splitValues(
+    row.ageKeys ??
+      row["Age Keys"] ??
+      row["Âge"] ??
+      row["Age"] ??
+      row["Public cible"] ??
+      row["Public"],
+  );
+  const label = values.join(" · ").trim();
+  const normalized = normalizeKey(label);
+  if (/toutpublic|touspublics?|touslespublics?/.test(normalized))
+    return "Tout public";
+  if (/famille|familial|familiale/.test(normalized)) return "Famille";
+  const range = label.match(/(\d+)\s*(?:-|–|—|à|a)\s*(\d+)\s*(?:ans?|años?)?/i);
+  if (range) return `${range[1]} - ${range[2]} ans`;
 
   // ageKeys sont des valeurs techniques de filtrage : elles ne doivent pas
   // être renvoyées comme texte visible dans les cartes ou le détail.
-  const technicalAgeKeys = new Set(['bebe', 'petitenfant', 'enfant', 'adolescent', 'jeune', 'adulte', 'famille'])
-  if (values.length > 0 && values.every((value) => technicalAgeKeys.has(normalizeKey(value)))) {
-    return undefined
+  const technicalAgeKeys = new Set([
+    "bebe",
+    "petitenfant",
+    "enfant",
+    "adolescent",
+    "jeune",
+    "adulte",
+    "famille",
+  ]);
+  if (
+    values.length > 0 &&
+    values.every((value) => technicalAgeKeys.has(normalizeKey(value)))
+  ) {
+    return undefined;
   }
-  return label || undefined
+  return label || undefined;
 }
 function ageKeysFromRow(row: RawRow): string[] {
-  const explicit = splitValues(row.ageKeys ?? row['Age Keys'] ?? row['Âge'] ?? row['Age'] ?? row['Public cible'] ?? row['Public'])
-  const rangeText = explicit.join(' ')
-  const rangeNumbers = rangeText.match(/(\d+)\s*(?:-|–|à|a)\s*(\d+)/i)
+  const explicit = splitValues(
+    row.ageKeys ??
+      row["Age Keys"] ??
+      row["Âge"] ??
+      row["Age"] ??
+      row["Public cible"] ??
+      row["Public"],
+  );
+  const rangeText = explicit.join(" ");
+  const rangeNumbers = rangeText.match(/(\d+)\s*(?:-|–|à|a)\s*(\d+)/i);
   if (rangeNumbers) {
-    const min = Number(rangeNumbers[1])
-    const max = Number(rangeNumbers[2])
+    const min = Number(rangeNumbers[1]);
+    const max = Number(rangeNumbers[2]);
     return [
-      ...(min <= 2 && max >= 0 ? ['bebe'] : []),
-      ...(min <= 5 && max >= 3 ? ['petitEnfant'] : []),
-      ...(min <= 11 && max >= 6 ? ['enfant'] : []),
-      ...(min <= 17 && max >= 12 ? ['adolescent'] : []),
-      ...(max >= 18 ? ['adulte'] : []),
-    ]
+      ...(min <= 2 && max >= 0 ? ["bebe"] : []),
+      ...(min <= 5 && max >= 3 ? ["petitEnfant"] : []),
+      ...(min <= 11 && max >= 6 ? ["enfant"] : []),
+      ...(min <= 17 && max >= 12 ? ["adolescent"] : []),
+      ...(max >= 18 ? ["adulte"] : []),
+    ];
   }
   const normalized = explicit.map((age) => {
-    const n = normalizeKey(age)
-    if (/^0.*2|bebe/.test(n)) return 'bebe'
-    if (/3.*5|petitenfant/.test(n)) return 'petitEnfant'
-    if (/6.*11|enfant/.test(n)) return 'enfant'
-    if (/12.*17|adolescent|ado/.test(n)) return 'adolescent'
-    if (/jeune|jeunes/.test(n)) return 'jeune'
-    if (/famille|familial|familiale/.test(n)) return 'famille'
-    if (/18|adulte/.test(n)) return 'adulte'
-    return age
-  })
-  const min = numericAgeFromRow(row, AGE_MIN_KEYS)
-  const max = numericAgeFromRow(row, AGE_MAX_KEYS)
+    const n = normalizeKey(age);
+    if (/^0.*2|bebe/.test(n)) return "bebe";
+    if (/3.*5|petitenfant/.test(n)) return "petitEnfant";
+    if (/6.*11|enfant/.test(n)) return "enfant";
+    if (/12.*17|adolescent|ado/.test(n)) return "adolescent";
+    if (/jeune|jeunes/.test(n)) return "jeune";
+    if (/famille|familial|familiale/.test(n)) return "famille";
+    if (/18|adulte/.test(n)) return "adulte";
+    return age;
+  });
+  const min = numericAgeFromRow(row, AGE_MIN_KEYS);
+  const max = numericAgeFromRow(row, AGE_MAX_KEYS);
   if (!normalized.length && min !== undefined) {
-    const upper = max ?? 99
+    const upper = max ?? 99;
     return [
-      ...(min <= 2 && upper >= 0 ? ['bebe'] : []),
-      ...(min <= 5 && upper >= 3 ? ['petitEnfant'] : []),
-      ...(min <= 11 && upper >= 6 ? ['enfant'] : []),
-      ...(min <= 17 && upper >= 12 ? ['adolescent'] : []),
-      ...(upper >= 18 ? ['adulte'] : []),
-    ]
+      ...(min <= 2 && upper >= 0 ? ["bebe"] : []),
+      ...(min <= 5 && upper >= 3 ? ["petitEnfant"] : []),
+      ...(min <= 11 && upper >= 6 ? ["enfant"] : []),
+      ...(min <= 17 && upper >= 12 ? ["adolescent"] : []),
+      ...(upper >= 18 ? ["adulte"] : []),
+    ];
   }
-  return [...new Set(normalized)]
+  return [...new Set(normalized)];
 }
 
 function cantonFrom(valueToParse: string): string {
-  const normalized = normalizeKey(valueToParse)
+  const normalized = normalizeKey(valueToParse);
   const aliases: Record<string, string> = {
-    zurich: 'ZH', berne: 'BE', bern: 'BE', lucerne: 'LU', luzern: 'LU', fribourg: 'FR',
-    vaud: 'VD', geneve: 'GE', geneva: 'GE', valais: 'VS', wallis: 'VS', neuchatel: 'NE',
-    neuchâtel: 'NE', tessin: 'TI', ticino: 'TI', jura: 'JU', soleure: 'SO', solothurn: 'SO',
-    argovie: 'AG', aargau: 'AG', grisons: 'GR', graubunden: 'GR', thurgovie: 'TG',
-    schaffhouse: 'SH', saintgall: 'SG', bâleville: 'BS', baleville: 'BS',
-  }
-  return aliases[normalized] || valueToParse.toUpperCase()
+    zurich: "ZH",
+    berne: "BE",
+    bern: "BE",
+    lucerne: "LU",
+    luzern: "LU",
+    fribourg: "FR",
+    vaud: "VD",
+    geneve: "GE",
+    geneva: "GE",
+    valais: "VS",
+    wallis: "VS",
+    neuchatel: "NE",
+    neuchâtel: "NE",
+    tessin: "TI",
+    ticino: "TI",
+    jura: "JU",
+    soleure: "SO",
+    solothurn: "SO",
+    argovie: "AG",
+    aargau: "AG",
+    grisons: "GR",
+    graubunden: "GR",
+    thurgovie: "TG",
+    schaffhouse: "SH",
+    saintgall: "SG",
+    bâleville: "BS",
+    baleville: "BS",
+  };
+  return aliases[normalized] || valueToParse.toUpperCase();
 }
 
 // Table de correspondance ENTRE le texte de la colonne "Catégorie" du Sheet
@@ -260,46 +343,119 @@ function cantonFrom(valueToParse: string): string {
 const SUBCATEGORY_KEYWORDS: { key: string; keywords: string[] }[] = [
   // --- Cours : testés en premier (les plus spécifiques) ---
   {
-    key: 'coursSoutien',
-    keywords: ['soutienscolaire', 'aidedevoirs', 'appuiscolaire', 'coursdesoutien', 'devoirssurveilles', 'remediation'],
+    key: "coursSoutien",
+    keywords: [
+      "soutienscolaire",
+      "aidedevoirs",
+      "appuiscolaire",
+      "coursdesoutien",
+      "devoirssurveilles",
+      "remediation",
+    ],
   },
   {
-    key: 'coursLangues',
-    keywords: ['coursdelangue', 'coursdelangues', 'coursdanglais', 'coursdallemand', 'francaislanguetrangere', 'coursdefle', 'languesetrangeres'],
+    key: "coursLangues",
+    keywords: [
+      "coursdelangue",
+      "coursdelangues",
+      "coursdanglais",
+      "coursdallemand",
+      "francaislanguetrangere",
+      "coursdefle",
+      "languesetrangeres",
+    ],
   },
   {
-    key: 'coursArt',
-    keywords: ['ateliersdart', 'atelierdart', 'coursdedessin', 'coursdepeinture', 'coursdemusique', 'coursdetheatre', 'coursdedanse', 'coursdechant', 'coursartistique'],
+    key: "coursArt",
+    keywords: [
+      "ateliersdart",
+      "atelierdart",
+      "coursdedessin",
+      "coursdepeinture",
+      "coursdemusique",
+      "coursdetheatre",
+      "coursdedanse",
+      "coursdechant",
+      "coursartistique",
+    ],
   },
   {
-    key: 'coursSport',
-    keywords: ['seancesdesport', 'seancedesport', 'coursdesport', 'coursdefitness', 'coursdenatation', 'coursdegym', 'coursdegymnastique', 'coursdeyoga'],
+    key: "coursSport",
+    keywords: [
+      "seancesdesport",
+      "seancedesport",
+      "coursdesport",
+      "coursdefitness",
+      "coursdenatation",
+      "coursdegym",
+      "coursdegymnastique",
+      "coursdeyoga",
+    ],
   },
   {
-    key: 'coursNumeriques',
-    keywords: ['coursnumerique', 'coursnumeriques', 'coursinformatique', 'coursdecodage', 'coursderobotique', 'coursdeprogrammation'],
+    key: "coursNumeriques",
+    keywords: [
+      "coursnumerique",
+      "coursnumeriques",
+      "coursinformatique",
+      "coursdecodage",
+      "coursderobotique",
+      "coursdeprogrammation",
+    ],
   },
   // --- Activités : testées ensuite, mots-clés plus génériques ---
   {
-    key: 'actPleinAir',
+    key: "actPleinAir",
     keywords: [
-      'activitesphysiques', 'activitephysique', 'pleinair', 'sportif', 'sportive', 'sport',
-      'randonnee', 'rando', 'velo', 'balade', 'nature', 'exterieur', 'montagne', 'ski',
-      'baignade', 'aventure', 'escalade', 'course',
+      "activitesphysiques",
+      "activitephysique",
+      "pleinair",
+      "sportif",
+      "sportive",
+      "sport",
+      "randonnee",
+      "rando",
+      "velo",
+      "balade",
+      "nature",
+      "exterieur",
+      "montagne",
+      "ski",
+      "baignade",
+      "aventure",
+      "escalade",
+      "course",
     ],
   },
   {
-    key: 'actCulturelles',
+    key: "actCulturelles",
     keywords: [
-      'activitesculturelles', 'activiteculturelle', 'culture', 'culturel', 'musee', 'exposition',
-      'concert', 'theatre', 'spectacle', 'cinema', 'patrimoine', 'visiteguidee', 'conte',
+      "activitesculturelles",
+      "activiteculturelle",
+      "culture",
+      "culturel",
+      "musee",
+      "exposition",
+      "concert",
+      "theatre",
+      "spectacle",
+      "cinema",
+      "patrimoine",
+      "visiteguidee",
+      "conte",
     ],
   },
   {
-    key: 'actAutres',
-    keywords: ['autresactivites', 'autreactivite', 'loisir', 'loisirs', 'divers'],
+    key: "actAutres",
+    keywords: [
+      "autresactivites",
+      "autreactivite",
+      "loisir",
+      "loisirs",
+      "divers",
+    ],
   },
-]
+];
 
 // Étape 1 (prioritaire) : libellés "composés" du Sheet, de la forme
 // "Catégorie générale – précision libre" (ex: "Autres activités – Atelier
@@ -310,64 +466,154 @@ const SUBCATEGORY_KEYWORDS: { key: string; keywords: string[] }[] = [
 // le client annonçait lui-même "Autres activités" — et l'événement finirait
 // classé plein air au lieu d'autres activités.
 const KNOWN_PREFIXES: { key: string; prefixes: string[] }[] = [
-  { key: 'coursSoutien', prefixes: ['soutienscolaire'] },
-  { key: 'coursLangues', prefixes: ['coursdelangues', 'coursdelangue'] },
-  { key: 'coursArt', prefixes: ['ateliersdart', 'atelierdart'] },
-  { key: 'coursSport', prefixes: ['seancesdesport', 'seancedesport'] },
-  { key: 'coursNumeriques', prefixes: ['coursnumeriques', 'coursnumerique'] },
-  { key: 'actPleinAir', prefixes: ['activitesphysiques', 'activitephysique'] },
-  { key: 'actCulturelles', prefixes: ['activitesculturelles', 'activiteculturelle'] },
-  { key: 'actAutres', prefixes: ['autresactivites', 'autreactivite'] },
-]
+  { key: "coursSoutien", prefixes: ["soutienscolaire"] },
+  { key: "coursLangues", prefixes: ["coursdelangues", "coursdelangue"] },
+  { key: "coursArt", prefixes: ["ateliersdart", "atelierdart"] },
+  { key: "coursSport", prefixes: ["seancesdesport", "seancedesport"] },
+  { key: "coursNumeriques", prefixes: ["coursnumeriques", "coursnumerique"] },
+  { key: "actPleinAir", prefixes: ["activitesphysiques", "activitephysique"] },
+  {
+    key: "actCulturelles",
+    prefixes: ["activitesculturelles", "activiteculturelle"],
+  },
+  { key: "actAutres", prefixes: ["autresactivites", "autreactivite"] },
+];
 
 function subCategoryFrom(valueToParse: string): string {
-  const normalized = normalizeKey(valueToParse)
-  if (!normalized) return ''
+  const normalized = normalizeKey(valueToParse);
+  if (!normalized) return "";
 
   // Étape 1 : préfixe connu, le plus long d'abord (au cas où deux préfixes
   // candidats se chevauchent, pour matcher la clé la plus précise).
-  const allPrefixes = KNOWN_PREFIXES
-    .flatMap((group) => group.prefixes.map((prefix) => ({ key: group.key, prefix })))
-    .sort((a, b) => b.prefix.length - a.prefix.length)
-  const prefixMatch = allPrefixes.find((candidate) => normalized.startsWith(candidate.prefix))
-  if (prefixMatch) return prefixMatch.key
+  const allPrefixes = KNOWN_PREFIXES.flatMap((group) =>
+    group.prefixes.map((prefix) => ({ key: group.key, prefix })),
+  ).sort((a, b) => b.prefix.length - a.prefix.length);
+  const prefixMatch = allPrefixes.find((candidate) =>
+    normalized.startsWith(candidate.prefix),
+  );
+  if (prefixMatch) return prefixMatch.key;
 
   // Étape 2 (repli) : mot-clé cherché n'importe où dans le texte — pour les
   // libellés "libres" qui ne suivent pas le format "Catégorie – précision"
   // (ex: un client qui écrit juste "Vélo", "Randonnée", "Musée"...).
   for (const group of SUBCATEGORY_KEYWORDS) {
-    if (group.keywords.some((keyword) => normalized.includes(keyword))) return group.key
+    if (group.keywords.some((keyword) => normalized.includes(keyword)))
+      return group.key;
   }
-  return ''
+  return "";
 }
 
 function categoryFrom(valueToParse: string): string {
-  const category = normalizeKey(valueToParse)
+  const category = normalizeKey(valueToParse);
   // On priorise la détection par mots-clés de subCategoryFrom() ci-dessus :
   // "Ateliers d'art", "Soutien scolaire", "Séances de sport"... ne
   // contiennent pas le mot "cours" mais SONT des sous-catégories de "Cours".
-  const subKey = subCategoryFrom(valueToParse)
-  if (subKey?.startsWith('cours')) return 'cours'
-  if (subKey?.startsWith('act')) return 'activite'
-  if (category.includes('camp') && (category.includes('jour') || category.includes('day'))) return 'campJour'
-  if (category.includes('camp')) return 'campLogement'
-  if (category.includes('cours') || category.includes('course')) return 'cours'
-  return 'activite'
+  const subKey = subCategoryFrom(valueToParse);
+  if (subKey?.startsWith("cours")) return "cours";
+  if (subKey?.startsWith("act")) return "activite";
+  if (
+    category.includes("camp") &&
+    (category.includes("jour") || category.includes("day"))
+  )
+    return "campJour";
+  if (category.includes("camp")) return "campLogement";
+  if (category.includes("cours") || category.includes("course")) return "cours";
+  return "activite";
+}
+
+/** Interprète une case du Sheet comme un booléen (oui/yes/true/1/x). */
+function truthyFlag(value: string): boolean {
+  const normalized = normalizeKey(value);
+  return ["oui", "yes", "true", "1", "x", "vrai"].includes(normalized);
+}
+
+/**
+ * Lit la colonne "mis en avant" du Sheet, sous n'importe lequel de ces
+ * intitulés (le premier trouvé et non vide gagne).
+ */
+function misEnAvantFromRow(row: RawRow): boolean {
+  const value = findValue(
+    row,
+    "Sélection",
+    "Selection",
+    "Mis en avant",
+    "MisEnAvant",
+    "À la une",
+    "A la une",
+    "Vedette",
+    "Featured",
+  );
+  return truthyFlag(value);
 }
 
 // Champs qu'une ligne de "continuation" (occurrence supplémentaire du même
 // événement, ligne souvent quasi vide dans le Sheet) peut hériter de la
 // ligne précédente lorsqu'elle appartient au même groupe.
 const INHERITED_FIELDS = [
-  'Titre', 'titre', 'Title', 'Photo', 'photo', 'image', 'Image',
-  'Catégorie', 'Categorie', 'categorie', 'Category', 'Categoria', 'Catégorie détaillée', 'Categorie detaillee', 'categorieLabel', 'categoryLabel',
-  'Sous-catégorie', 'Sous categorie', 'sousCategorie',
-  'Description', 'description', 'Information complémentaire', 'Information complementaire', 'infoComplementaire', 'Infos',
-  'Téléphone', 'Telephone', 'contactTel', 'Téléphone de contact', 'E-mail', 'Email', 'contactEmail', 'Adresse e-mail',
-  'Prix', 'prix', 'tarif', 'Price',
-  'Âge', 'Age', 'ageKeys', 'Age Keys', 'Âge Min', 'Age Min', 'Age Max', 'Âge Max', 'ajmine', 'ajmax', 'âge mine', 'age mine', 'âge max', 'age max',
-  "Lien de l'événement", 'Lien de evenement', 'siteUrl', 'url',
-]
+  "Titre",
+  "titre",
+  "Title",
+  "Photo",
+  "photo",
+  "image",
+  "Image",
+  "Catégorie",
+  "Categorie",
+  "categorie",
+  "Category",
+  "Categoria",
+  "Catégorie détaillée",
+  "Categorie detaillee",
+  "categorieLabel",
+  "categoryLabel",
+  "Sous-catégorie",
+  "Sous categorie",
+  "sousCategorie",
+  "Description",
+  "description",
+  "Information complémentaire",
+  "Information complementaire",
+  "infoComplementaire",
+  "Infos",
+  "Téléphone",
+  "Telephone",
+  "contactTel",
+  "Téléphone de contact",
+  "E-mail",
+  "Email",
+  "contactEmail",
+  "Adresse e-mail",
+  "Prix",
+  "prix",
+  "tarif",
+  "Price",
+  "Âge",
+  "Age",
+  "ageKeys",
+  "Age Keys",
+  "Âge Min",
+  "Age Min",
+  "Age Max",
+  "Âge Max",
+  "ajmine",
+  "ajmax",
+  "âge mine",
+  "age mine",
+  "âge max",
+  "age max",
+  "Lien de l'événement",
+  "Lien de evenement",
+  "siteUrl",
+  "url",
+  "Sélection",
+  "Selection",
+  "Mis en avant",
+  "MisEnAvant",
+  "À la une",
+  "A la une",
+  "Vedette",
+  "Featured",
+];
 
 /**
  * Complète les lignes de "continuation" (occurrences supplémentaires d'un
@@ -390,19 +636,26 @@ const INHERITED_FIELDS = [
  * ses autres dates.
  */
 function inheritRepeatedEventFields(rows: RawRow[]): RawRow[] {
-  let previousEvent: RawRow | null = null
+  let previousEvent: RawRow | null = null;
 
   return rows.map((row) => {
-    const current = { ...row }
-    const hasTitle = Boolean(findValue(row, 'Titre', 'titre', 'Title'))
-    const isContinuation = Boolean(previousEvent) && !hasTitle
+    const current = { ...row };
+    const hasTitle = Boolean(findValue(row, "Titre", "titre", "Title"));
+    const isContinuation = Boolean(previousEvent) && !hasTitle;
 
     if (isContinuation) {
       for (const field of INHERITED_FIELDS) {
-        const currentValue = current[field]
-        const previousValue = previousEvent![field]
-        if ((currentValue === undefined || currentValue === null || String(currentValue).trim() === '') && previousValue !== undefined && previousValue !== null && String(previousValue).trim()) {
-          current[field] = previousValue
+        const currentValue = current[field];
+        const previousValue = previousEvent![field];
+        if (
+          (currentValue === undefined ||
+            currentValue === null ||
+            String(currentValue).trim() === "") &&
+          previousValue !== undefined &&
+          previousValue !== null &&
+          String(previousValue).trim()
+        ) {
+          current[field] = previousValue;
         }
       }
     }
@@ -412,40 +665,56 @@ function inheritRepeatedEventFields(rows: RawRow[]): RawRow[] {
     // c'est une continuation. Une ligne sans titre ET sans ancre précédente
     // (ex: ligne totalement vide en tête de feuille) ne rattache à rien.
     if (hasTitle || isContinuation) {
-      previousEvent = current
+      previousEvent = current;
     } else {
-      previousEvent = null
+      previousEvent = null;
     }
-    return current
-  })
+    return current;
+  });
 }
 
 /** Lieu affiché pour une ligne donnée. */
 function lieuFromRow(row: RawRow): string {
-  const address = findValue(row, 'Adresse', 'address')
-  const city = findValue(row, 'Ville', 'city')
-  return [address, city].filter(Boolean).join(', ') || findValue(row, 'lieu', 'Lieu')
+  const address = findValue(row, "Adresse", "address");
+  const city = findValue(row, "Ville", "city");
+  return (
+    [address, city].filter(Boolean).join(", ") || findValue(row, "lieu", "Lieu")
+  );
 }
 
-function formatDisplayDate(startText: string, endText: string, fallback: string): string {
-  const start = parseDate(startText)
-  const end = parseDate(endText)
+function formatDisplayDate(
+  startText: string,
+  endText: string,
+  fallback: string,
+): string {
+  const start = parseDate(startText);
+  const end = parseDate(endText);
   const toFrench = (value: string) => {
-    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (!match) return value
-    const date = new Date(`${value}T12:00:00`)
-    return new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
-  }
-  if (!startText && !endText) return fallback
-  if (!endText || start === end) return toFrench(start || fallback)
-  return `Du ${toFrench(start)} au ${toFrench(end)}`
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value;
+    const date = new Date(`${value}T12:00:00`);
+    return new Intl.DateTimeFormat("fr-CH", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  };
+  if (!startText && !endText) return fallback;
+  if (!endText || start === end) return toFrench(start || fallback);
+  return `Du ${toFrench(start)} au ${toFrench(end)}`;
 }
 
 /** Date affichée pour une ligne donnée (même règle que dans normalizeRow). */
 function dateFromRow(row: RawRow): string {
-  const startText = findValue(row, 'Date début', 'Date debut', 'dateStart') || findValue(row, 'Date', 'date')
-  const endText = findValue(row, 'Date fin', 'dateEnd')
-  return formatDisplayDate(startText, endText, findValue(row, 'Date', 'date') || startText)
+  const startText =
+    findValue(row, "Date début", "Date debut", "dateStart") ||
+    findValue(row, "Date", "date");
+  const endText = findValue(row, "Date fin", "dateEnd");
+  return formatDisplayDate(
+    startText,
+    endText,
+    findValue(row, "Date", "date") || startText,
+  );
 }
 
 /**
@@ -468,15 +737,17 @@ function dateFromRow(row: RawRow): string {
  * toujours hérités (voir INHERITED_FIELDS), donc stables sur tout le groupe.
  */
 function groupKeyFromRow(row: RawRow, index: number): string {
-  const rowKey = findValue(row, 'Row Key', 'RowKey')
+  const rowKey = findValue(row, "Row Key", "RowKey");
   if (rowKey) {
-    const stripped = rowKey.replace(/-\d+$/, '')
-    if (stripped) return stripped
+    const stripped = rowKey.replace(/-\d+$/, "");
+    if (stripped) return stripped;
   }
-  const titre = normalizeKey(findValue(row, 'Titre', 'titre', 'Title'))
-  if (!titre) return `__no-title-${index}`
-  const sousCategorie = normalizeKey(findValue(row, 'Sous-catégorie', 'Sous categorie', 'sousCategorie'))
-  return `${titre}__${sousCategorie}`
+  const titre = normalizeKey(findValue(row, "Titre", "titre", "Title"));
+  if (!titre) return `__no-title-${index}`;
+  const sousCategorie = normalizeKey(
+    findValue(row, "Sous-catégorie", "Sous categorie", "sousCategorie"),
+  );
+  return `${titre}__${sousCategorie}`;
 }
 
 /**
@@ -485,19 +756,19 @@ function groupKeyFromRow(row: RawRow, index: number): string {
  * suit l'ordre de première apparition de chaque clé.
  */
 function groupEventRows(rows: RawRow[]): RawRow[][] {
-  const order: string[] = []
-  const groups = new Map<string, RawRow[]>()
+  const order: string[] = [];
+  const groups = new Map<string, RawRow[]>();
   rows.forEach((row, index) => {
-    const key = groupKeyFromRow(row, index)
-    const existing = groups.get(key)
+    const key = groupKeyFromRow(row, index);
+    const existing = groups.get(key);
     if (existing) {
-      existing.push(row)
+      existing.push(row);
     } else {
-      groups.set(key, [row])
-      order.push(key)
+      groups.set(key, [row]);
+      order.push(key);
     }
-  })
-  return order.map((key) => groups.get(key) as RawRow[])
+  });
+  return order.map((key) => groups.get(key) as RawRow[]);
 }
 
 /**
@@ -507,11 +778,17 @@ function groupEventRows(rows: RawRow[]): RawRow[][] {
  * en dernier recours la première ligne du groupe.
  */
 function pickPrimaryRow(group: RawRow[]): RawRow {
-  const withIdAndTitle = group.find((row) => findValue(row, 'Num', 'id', 'ID') && findValue(row, 'Titre', 'titre', 'Title'))
-  if (withIdAndTitle) return withIdAndTitle
-  const withTitle = group.find((row) => findValue(row, 'Titre', 'titre', 'Title'))
-  if (withTitle) return withTitle
-  return group.find((row) => findValue(row, 'Num', 'id', 'ID')) ?? group[0]!
+  const withIdAndTitle = group.find(
+    (row) =>
+      findValue(row, "Num", "id", "ID") &&
+      findValue(row, "Titre", "titre", "Title"),
+  );
+  if (withIdAndTitle) return withIdAndTitle;
+  const withTitle = group.find((row) =>
+    findValue(row, "Titre", "titre", "Title"),
+  );
+  if (withTitle) return withTitle;
+  return group.find((row) => findValue(row, "Num", "id", "ID")) ?? group[0]!;
 }
 
 /**
@@ -523,18 +800,22 @@ function pickPrimaryRow(group: RawRow[]): RawRow {
  * choisie comme principale a une case Titre vide dans le Sheet alors qu'une
  * autre ligne du même événement (même Row Key) la renseigne.
  */
-function fillConstantFieldsFromGroup(group: RawRow[], primaryRow: RawRow): RawRow {
-  const filled: RawRow = { ...primaryRow }
+function fillConstantFieldsFromGroup(
+  group: RawRow[],
+  primaryRow: RawRow,
+): RawRow {
+  const filled: RawRow = { ...primaryRow };
   for (const field of INHERITED_FIELDS) {
-    const current = filled[field]
-    if (current !== undefined && current !== null && String(current).trim()) continue
+    const current = filled[field];
+    if (current !== undefined && current !== null && String(current).trim())
+      continue;
     const donor = group.find((row) => {
-      const value = row[field]
-      return value !== undefined && value !== null && String(value).trim()
-    })
-    if (donor) filled[field] = donor[field]
+      const value = row[field];
+      return value !== undefined && value !== null && String(value).trim();
+    });
+    if (donor) filled[field] = donor[field];
   }
-  return filled
+  return filled;
 }
 
 /**
@@ -546,33 +827,48 @@ function fillConstantFieldsFromGroup(group: RawRow[], primaryRow: RawRow): RawRo
  *  - toutes à la même date, lieux différents -> autresAdresses
  *  - sinon (lieu ET date qui varient)        -> autresLieuxDates
  */
-function buildAutresOccurrences(primaryRow: RawRow, otherRows: RawRow[]): Pick<NormalizedAgendaEvent, 'autresDates' | 'autresAdresses' | 'autresLieuxDates'> {
-  if (!otherRows.length) return {}
+function buildAutresOccurrences(
+  primaryRow: RawRow,
+  otherRows: RawRow[],
+): Pick<
+  NormalizedAgendaEvent,
+  "autresDates" | "autresAdresses" | "autresLieuxDates"
+> {
+  if (!otherRows.length) return {};
 
-  const primaryLieu = lieuFromRow(primaryRow)
-  const primaryDate = dateFromRow(primaryRow)
+  const primaryLieu = lieuFromRow(primaryRow);
+  const primaryDate = dateFromRow(primaryRow);
 
   const occurrences = otherRows
-    .map((row) => ({ lieu: lieuFromRow(row) || primaryLieu, date: dateFromRow(row) }))
-    .filter((occ) => occ.date || occ.lieu)
+    .map((row) => ({
+      lieu: lieuFromRow(row) || primaryLieu,
+      date: dateFromRow(row),
+    }))
+    .filter((occ) => occ.date || occ.lieu);
 
-  if (!occurrences.length) return {}
+  if (!occurrences.length) return {};
 
-  const sameLieu = occurrences.every((occ) => occ.lieu === primaryLieu)
-  const sameDate = occurrences.every((occ) => occ.date === primaryDate)
+  const sameLieu = occurrences.every((occ) => occ.lieu === primaryLieu);
+  const sameDate = occurrences.every((occ) => occ.date === primaryDate);
 
-  if (sameLieu && !sameDate) return { autresDates: occurrences.map((occ) => occ.date).filter(Boolean) }
-  if (sameDate && !sameLieu) return { autresAdresses: occurrences.map((occ) => occ.lieu).filter(Boolean) }
-  return { autresLieuxDates: occurrences }
+  if (sameLieu && !sameDate)
+    return { autresDates: occurrences.map((occ) => occ.date).filter(Boolean) };
+  if (sameDate && !sameLieu)
+    return {
+      autresAdresses: occurrences.map((occ) => occ.lieu).filter(Boolean),
+    };
+  return { autresLieuxDates: occurrences };
 }
 
 /** Dates ISO (début/fin) d'une ligne, mêmes règles que dans normalizeRow. */
 function isoRangeFromRow(row: RawRow): { dateStart: string; dateEnd: string } {
-  const startText = findValue(row, 'Date début', 'Date debut', 'dateStart') || findValue(row, 'Date', 'date')
-  const endText = findValue(row, 'Date fin', 'dateEnd')
-  const dateStart = parseDate(startText)
-  const dateEnd = parseDate(endText) || dateStart
-  return { dateStart, dateEnd }
+  const startText =
+    findValue(row, "Date début", "Date debut", "dateStart") ||
+    findValue(row, "Date", "date");
+  const endText = findValue(row, "Date fin", "dateEnd");
+  const dateStart = parseDate(startText);
+  const dateEnd = parseDate(endText) || dateStart;
+  return { dateStart, dateEnd };
 }
 
 /**
@@ -581,8 +877,10 @@ function isoRangeFromRow(row: RawRow): { dateStart: string; dateEnd: string } {
  * pour l'affichage (voir autresDates/autresAdresses/autresLieuxDates, qui
  * restent au format texte lisible pour l'utilisateur).
  */
-function buildAutresDatesISO(otherRows: RawRow[]): { dateStart: string; dateEnd: string }[] {
-  return otherRows.map(isoRangeFromRow).filter((occ) => occ.dateStart)
+function buildAutresDatesISO(
+  otherRows: RawRow[],
+): { dateStart: string; dateEnd: string }[] {
+  return otherRows.map(isoRangeFromRow).filter((occ) => occ.dateStart);
 }
 
 /**
@@ -593,56 +891,105 @@ function buildAutresDatesISO(otherRows: RawRow[]): { dateStart: string; dateEnd:
  */
 function mergeManualAutres(
   primaryRow: RawRow,
-  fromGroup: Pick<NormalizedAgendaEvent, 'autresDates' | 'autresAdresses' | 'autresLieuxDates'>,
-): Pick<NormalizedAgendaEvent, 'autresDates' | 'autresAdresses' | 'autresLieuxDates'> {
-  const manualDates = splitValues(findValue(primaryRow, 'Autres dates', 'Autres date', 'autresDates', 'Dates supplémentaires', 'Dates supplementaires'))
-  const manualAdresses = splitValues(findValue(primaryRow, 'Autres adresses', 'Autres adresse', 'autresAdresses', 'Adresses supplémentaires', 'Adresses supplementaires'))
-  const manualLieuxDates = parseOtherLocations(findValue(primaryRow, 'Autres lieux et dates', 'Autres lieux dates', 'autresLieuxDates', 'Retrouvez-nous également à'))
+  fromGroup: Pick<
+    NormalizedAgendaEvent,
+    "autresDates" | "autresAdresses" | "autresLieuxDates"
+  >,
+): Pick<
+  NormalizedAgendaEvent,
+  "autresDates" | "autresAdresses" | "autresLieuxDates"
+> {
+  const manualDates = splitValues(
+    findValue(
+      primaryRow,
+      "Autres dates",
+      "Autres date",
+      "autresDates",
+      "Dates supplémentaires",
+      "Dates supplementaires",
+    ),
+  );
+  const manualAdresses = splitValues(
+    findValue(
+      primaryRow,
+      "Autres adresses",
+      "Autres adresse",
+      "autresAdresses",
+      "Adresses supplémentaires",
+      "Adresses supplementaires",
+    ),
+  );
+  const manualLieuxDates = parseOtherLocations(
+    findValue(
+      primaryRow,
+      "Autres lieux et dates",
+      "Autres lieux dates",
+      "autresLieuxDates",
+      "Retrouvez-nous également à",
+    ),
+  );
 
-  const autresDates = [...new Set([...(fromGroup.autresDates ?? []), ...manualDates])]
-  const autresAdresses = [...new Set([...(fromGroup.autresAdresses ?? []), ...manualAdresses])]
-  const seen = new Set((fromGroup.autresLieuxDates ?? []).map((o) => `${o.lieu}__${o.date}`))
+  const autresDates = [
+    ...new Set([...(fromGroup.autresDates ?? []), ...manualDates]),
+  ];
+  const autresAdresses = [
+    ...new Set([...(fromGroup.autresAdresses ?? []), ...manualAdresses]),
+  ];
+  const seen = new Set(
+    (fromGroup.autresLieuxDates ?? []).map((o) => `${o.lieu}__${o.date}`),
+  );
   const autresLieuxDates = [
     ...(fromGroup.autresLieuxDates ?? []),
     ...manualLieuxDates.filter((o) => !seen.has(`${o.lieu}__${o.date}`)),
-  ]
+  ];
 
   return {
     ...(autresDates.length ? { autresDates } : {}),
     ...(autresAdresses.length ? { autresAdresses } : {}),
     ...(autresLieuxDates.length ? { autresLieuxDates } : {}),
-  }
+  };
 }
 
-function normalizeRow(row: RawRow, index: number): Omit<NormalizedAgendaEvent, 'image'> & { imageUrl: string } {
-  const startText = findValue(row, 'Date début', 'Date debut', 'dateStart') || findValue(row, 'Date', 'date')
-  const endText = findValue(row, 'Date fin', 'dateEnd')
-  const address = findValue(row, 'Adresse', 'address')
-  const city = findValue(row, 'Ville', 'city')
-  const canton = findValue(row, 'Canton', 'canton', 'cantonKey')
-  const lieu = [address, city].filter(Boolean).join(', ') || findValue(row, 'lieu', 'Lieu')
+function normalizeRow(
+  row: RawRow,
+  index: number,
+): Omit<NormalizedAgendaEvent, "image"> & { imageUrl: string } {
+  const startText =
+    findValue(row, "Date début", "Date debut", "dateStart") ||
+    findValue(row, "Date", "date");
+  const endText = findValue(row, "Date fin", "dateEnd");
+  const address = findValue(row, "Adresse", "address");
+  const city = findValue(row, "Ville", "city");
+  const canton = findValue(row, "Canton", "canton", "cantonKey");
+  const lieu =
+    [address, city].filter(Boolean).join(", ") ||
+    findValue(row, "lieu", "Lieu");
   const categorieLabelRaw = findValue(
     row,
-    'Catégorie détaillée',
-    'Categorie detaillee',
-    'Catégorie',
-    'Categorie',
-    'categorie',
-    'categorieLabel',
-    'categoryLabel',
-    'Category',
-    'Categoria',
-  )
-  const categorieRow = categoryFrom(categorieLabelRaw)
-  const age = singleAgeFromRow(row)
-  const ageMin = numericAgeFromRow(row, AGE_MIN_KEYS)
-  const ageMax = numericAgeFromRow(row, AGE_MAX_KEYS)
+    "Catégorie détaillée",
+    "Categorie detaillee",
+    "Catégorie",
+    "Categorie",
+    "categorie",
+    "categorieLabel",
+    "categoryLabel",
+    "Category",
+    "Categoria",
+  );
+  const categorieRow = categoryFrom(categorieLabelRaw);
+  const age = singleAgeFromRow(row);
+  const ageMin = numericAgeFromRow(row, AGE_MIN_KEYS);
+  const ageMax = numericAgeFromRow(row, AGE_MAX_KEYS);
   return {
-    id: findValue(row, 'Num', 'id', 'ID') || `auto-${index}-${Date.now()}`,
-    titre: findValue(row, 'Titre', 'titre', 'Title') || 'Événement sans titre',
+    id: findValue(row, "Num", "id", "ID") || `auto-${index}-${Date.now()}`,
+    titre: findValue(row, "Titre", "titre", "Title") || "Événement sans titre",
     lieu,
     cantonKey: cantonFrom(canton),
-    date: formatDisplayDate(startText, endText, findValue(row, 'Date', 'date') || startText),
+    date: formatDisplayDate(
+      startText,
+      endText,
+      findValue(row, "Date", "date") || startText,
+    ),
     dateStart: parseDate(startText),
     dateEnd: parseDate(endText),
     categorie: categorieRow,
@@ -658,111 +1005,177 @@ function normalizeRow(row: RawRow, index: number): Omit<NormalizedAgendaEvent, '
     // menuData.ts/vacancesItems), pour que le clic sur "Vacances enfants" >
     // "Camps" dans le menu du site puisse filtrer ces événements malgré
     // l'absence de sous-catégorie réelle.
-    sousCategorie: subCategoryFrom(categorieLabelRaw)
-      || findValue(row, 'Sous-catégorie', 'Sous categorie', 'sousCategorie')
-      || (categorieRow === 'campLogement' ? 'vacCamps' : categorieRow === 'campJour' ? 'vacCampsDuJour' : ''),
+    sousCategorie:
+      subCategoryFrom(categorieLabelRaw) ||
+      findValue(row, "Sous-catégorie", "Sous categorie", "sousCategorie") ||
+      (categorieRow === "campLogement"
+        ? "vacCamps"
+        : categorieRow === "campJour"
+          ? "vacCampsDuJour"
+          : ""),
     ageKeys: ageKeysFromRow(row),
     age,
     ageMin,
     ageMax,
     ageLabel: ageLabelFromRow(row),
-    partnerId: Number(findValue(row, 'partnerId', '_partnerId')) || undefined,
-    horaires: findValue(row, 'Heure', 'horaires', 'Horaire'),
-    tarif: findValue(row, 'Prix', 'prix', 'tarif', 'Price'),
-    description: findValue(row, 'Description', 'description'),
-    infoComplementaire: findValue(row, 'Information complémentaire', 'Information complementaire', 'infoComplementaire', 'Infos'),
-    contactTel: findValue(row, 'Téléphone', 'Telephone', 'contactTel', 'Téléphone de contact'),
-    contactEmail: findValue(row, 'E-mail', 'Email', 'contactEmail', 'Adresse e-mail'),
-    siteUrl: findValue(row, "Lien de l'événement", 'Lien de evenement', 'siteUrl', 'url'),
-    imageUrl: findValue(row, 'Photo', 'photo', 'image', 'Image'),
-    seoDescription: findValue(row, 'Description SEO', 'seoDescription'),
-    seoKeywords: findValue(row, 'Mots clés SEO', 'Mots cles SEO', 'seoKeywords'),
-  }
+    partnerId: Number(findValue(row, "partnerId", "_partnerId")) || undefined,
+    horaires: findValue(row, "Heure", "horaires", "Horaire"),
+    tarif: findValue(row, "Prix", "prix", "tarif", "Price"),
+    description: findValue(row, "Description", "description"),
+    infoComplementaire: findValue(
+      row,
+      "Information complémentaire",
+      "Information complementaire",
+      "infoComplementaire",
+      "Infos",
+    ),
+    contactTel: findValue(
+      row,
+      "Téléphone",
+      "Telephone",
+      "contactTel",
+      "Téléphone de contact",
+    ),
+    contactEmail: findValue(
+      row,
+      "E-mail",
+      "Email",
+      "contactEmail",
+      "Adresse e-mail",
+    ),
+    siteUrl: findValue(
+      row,
+      "Lien de l'événement",
+      "Lien de evenement",
+      "siteUrl",
+      "url",
+    ),
+    imageUrl: findValue(row, "Photo", "photo", "image", "Image"),
+    seoDescription: findValue(row, "Description SEO", "seoDescription"),
+    seoKeywords: findValue(
+      row,
+      "Mots clés SEO",
+      "Mots cles SEO",
+      "seoKeywords",
+    ),
+    misEnAvant: misEnAvantFromRow(row),
+  };
 }
 
 export default defineEventHandler(async () => {
-  if (cache && Date.now() - cache.fetchedAt < CACHE_DURATION_MS) return cache.data
+  if (cache && Date.now() - cache.fetchedAt < CACHE_DURATION_MS)
+    return cache.data;
   try {
-    const config = useRuntimeConfig()
-    const rawResponse = await $fetch<unknown>(config.n8nAgendaWebhookUrl)
-    const responseObject = rawResponse as { data?: unknown; events?: unknown; items?: unknown; body?: unknown }
+    const config = useRuntimeConfig();
+    const rawResponse = await $fetch<unknown>(config.n8nAgendaWebhookUrl);
+    const responseObject = rawResponse as {
+      data?: unknown;
+      events?: unknown;
+      items?: unknown;
+      body?: unknown;
+    };
     const candidate = Array.isArray(rawResponse)
       ? rawResponse
-      : (responseObject.data ?? responseObject.events ?? responseObject.items ?? responseObject.body ?? [])
-    const parsedCandidate = typeof candidate === 'string'
-      ? (() => { try { return JSON.parse(candidate) } catch { return [] } })()
-      : candidate
-    const rows: RawRow[] = Array.isArray(parsedCandidate) ? parsedCandidate as RawRow[] : []
+      : (responseObject.data ??
+        responseObject.events ??
+        responseObject.items ??
+        responseObject.body ??
+        []);
+    const parsedCandidate =
+      typeof candidate === "string"
+        ? (() => {
+            try {
+              return JSON.parse(candidate);
+            } catch {
+              return [];
+            }
+          })()
+        : candidate;
+    const rows: RawRow[] = Array.isArray(parsedCandidate)
+      ? (parsedCandidate as RawRow[])
+      : [];
 
-    const validRows = rows.filter((row) => row && typeof row === 'object')
-    const repeatedRows = inheritRepeatedEventFields(validRows)
+    const validRows = rows.filter((row) => row && typeof row === "object");
+    const repeatedRows = inheritRepeatedEventFields(validRows);
 
     // Un seul événement par groupe (= 1 carte par titre), les occurrences
     // supplémentaires alimentent "autresDates" / "autresAdresses" / "autresLieuxDates".
-    const groupedRows = groupEventRows(repeatedRows)
+    const groupedRows = groupEventRows(repeatedRows);
 
-    const processed: NormalizedAgendaEvent[] = await Promise.all(groupedRows.map(async (group, index): Promise<NormalizedAgendaEvent> => {
-      const primaryRow = pickPrimaryRow(group)
-      const filledPrimaryRow = fillConstantFieldsFromGroup(group, primaryRow)
-      const otherRows = group.filter((row) => row !== primaryRow)
-      const normalized = normalizeRow(filledPrimaryRow, index)
-      const autresOccurrences = mergeManualAutres(filledPrimaryRow, buildAutresOccurrences(primaryRow, otherRows))
-      const autresDatesISO = buildAutresDatesISO(otherRows)
-      const imageUrl = normalized.imageUrl
+    const processed: NormalizedAgendaEvent[] = await Promise.all(
+      groupedRows.map(async (group, index): Promise<NormalizedAgendaEvent> => {
+        const primaryRow = pickPrimaryRow(group);
+        const filledPrimaryRow = fillConstantFieldsFromGroup(group, primaryRow);
+        const otherRows = group.filter((row) => row !== primaryRow);
+        const normalized = normalizeRow(filledPrimaryRow, index);
+        const autresOccurrences = mergeManualAutres(
+          filledPrimaryRow,
+          buildAutresOccurrences(primaryRow, otherRows),
+        );
+        const autresDatesISO = buildAutresDatesISO(otherRows);
+        const imageUrl = normalized.imageUrl;
 
-      const eventData: Omit<NormalizedAgendaEvent, 'image'> = {
-        id: normalized.id,
-        titre: normalized.titre,
-        lieu: normalized.lieu,
-        cantonKey: normalized.cantonKey,
-        date: normalized.date,
-        dateStart: normalized.dateStart,
-        dateEnd: normalized.dateEnd,
-        categorie: normalized.categorie,
-        categorieDetaillee: normalized.categorieDetaillee,
-        categorieLabel: normalized.categorieLabel,
-        sousCategorie: normalized.sousCategorie,
-        ageKeys: normalized.ageKeys,
-        age: normalized.age,
-        ageMin: normalized.ageMin,
-        ageMax: normalized.ageMax,
-        ageLabel: normalized.ageLabel,
-        partnerId: normalized.partnerId,
-        horaires: normalized.horaires,
-        tarif: normalized.tarif,
-        description: normalized.description,
-        infoComplementaire: normalized.infoComplementaire,
-        contactTel: normalized.contactTel,
-        contactEmail: normalized.contactEmail,
-        siteUrl: normalized.siteUrl,
-        seoDescription: normalized.seoDescription,
-        seoKeywords: normalized.seoKeywords,
-        ...autresOccurrences,
-        ...(autresDatesISO.length ? { autresDatesISO } : {}),
-      }
+        const eventData: Omit<NormalizedAgendaEvent, "image"> = {
+          id: normalized.id,
+          titre: normalized.titre,
+          lieu: normalized.lieu,
+          cantonKey: normalized.cantonKey,
+          date: normalized.date,
+          dateStart: normalized.dateStart,
+          dateEnd: normalized.dateEnd,
+          categorie: normalized.categorie,
+          categorieDetaillee: normalized.categorieDetaillee,
+          categorieLabel: normalized.categorieLabel,
+          sousCategorie: normalized.sousCategorie,
+          ageKeys: normalized.ageKeys,
+          age: normalized.age,
+          ageMin: normalized.ageMin,
+          ageMax: normalized.ageMax,
+          ageLabel: normalized.ageLabel,
+          partnerId: normalized.partnerId,
+          horaires: normalized.horaires,
+          tarif: normalized.tarif,
+          description: normalized.description,
+          infoComplementaire: normalized.infoComplementaire,
+          contactTel: normalized.contactTel,
+          contactEmail: normalized.contactEmail,
+          siteUrl: normalized.siteUrl,
+          seoDescription: normalized.seoDescription,
+          seoKeywords: normalized.seoKeywords,
+          misEnAvant: normalized.misEnAvant,
+          ...autresOccurrences,
+          ...(autresDatesISO.length ? { autresDatesISO } : {}),
+        };
 
-      let image = DEFAULT_IMAGE
-      if (imageUrl) {
-        try { image = await saveImageFromUrl(imageUrl, normalized.id) } catch { image = DEFAULT_IMAGE }
-      }
-      return { ...eventData, image }
-    }))
+        let image = DEFAULT_IMAGE;
+        if (imageUrl) {
+          try {
+            image = await saveImageFromUrl(imageUrl, normalized.id);
+          } catch {
+            image = DEFAULT_IMAGE;
+          }
+        }
+        return { ...eventData, image };
+      }),
+    );
 
     // Garde-fou : même après regroupement, deux groupes distincts pourraient
     // partager un id issu du Sheet (erreur de saisie) -> on les rend uniques
     // pour éviter que Vue/Nuxt ne confonde deux cartes différentes.
-    const usedIds = new Map<string, number>()
+    const usedIds = new Map<string, number>();
     const uniqueProcessed = processed.map((event, index) => {
-      const baseId = event.id || `auto-${index}`
-      const occurrence = usedIds.get(baseId) ?? 0
-      usedIds.set(baseId, occurrence + 1)
-      return occurrence === 0 ? event : { ...event, id: `${baseId}-${occurrence + 1}` }
-    })
+      const baseId = event.id || `auto-${index}`;
+      const occurrence = usedIds.get(baseId) ?? 0;
+      usedIds.set(baseId, occurrence + 1);
+      return occurrence === 0
+        ? event
+        : { ...event, id: `${baseId}-${occurrence + 1}` };
+    });
 
-    cache = { data: uniqueProcessed, fetchedAt: Date.now() }
-    return uniqueProcessed
+    cache = { data: uniqueProcessed, fetchedAt: Date.now() };
+    return uniqueProcessed;
   } catch (error) {
-    console.error('[api/agenda] Erreur:', error)
-    return cache?.data ?? []
+    console.error("[api/agenda] Erreur:", error);
+    return cache?.data ?? [];
   }
-})
+});

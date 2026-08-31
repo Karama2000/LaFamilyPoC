@@ -8,6 +8,7 @@
 // 1. IMPORTS
 // -------------------------------------------------------
 import { agendaEventsFR } from "~/data/agendaData";
+import type { AgendaEvent } from "~/data/agendaData";
 
 // pages/index.vue — <script setup>
 import type { ContentItem } from "~/data/mockContent";
@@ -39,29 +40,51 @@ const nouveautes = computed<ContentItem[]>(() => {
 const { currentLang, isTranslating, t, setLang, dynamicCache } =
   useTranslation();
 
-//--------------------------------------------------------
-// 3. COMPUTED : CONTENU LOCALISÉ
-// -------------------------------------------------------
-const selectionEventIds = ["1", "3", "9", "11"];
-/**
- * Sélections mises en avant selon la langue courante
- * Utilise le cache dynamique ou les données françaises par défaut
- */
-const selections = computed(() =>
-  selectionEventIds
-    .map((id) => agendaEventsFR.find((ev) => ev.id === id))
-    .filter((ev): ev is (typeof agendaEventsFR)[number] => !!ev),
+// ----------------------------------------------------------------
+// 3. SÉLECTION (carrousel "Notre sélection") — DONNÉES BACK
+// ----------------------------------------------------------------
+// Même route que la page Agenda : /api/agenda interroge le webhook n8n
+// (Google Sheet), normalise les lignes, et renvoie tous les événements.
+// En cas d'échec du webhook, on retombe sur les données mock locales
+// (agendaEventsFR) pour ne jamais casser la page d'accueil.
+const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>(
+  "/api/agenda",
+  {
+    default: () => agendaEventsFR,
+  },
 );
 
+const agendaEvents = computed<AgendaEvent[]>(() =>
+  apiAgendaEvents.value?.length ? apiAgendaEvents.value : agendaEventsFR,
+);
+
+/** Nombre maximum d'items affichés dans le carrousel "Notre sélection" */
+const MAX_SELECTIONS = 6;
+
+// Anciens ids codés en dur, gardés UNIQUEMENT comme filet de sécurité tant
+// que le Sheet ne possède pas encore la colonne "Sélection"/"Mis en avant".
+const legacySelectionIds = ["1", "3", "9", "11"];
+
 /**
- * Nouveautés selon la langue courante
- * Utilise le cache dynamique ou les données françaises par défaut
+ * Sélections mises en avant pour le carrousel de la page d'accueil.
+ * Ordre de priorité :
+ *   1. Événements marqués "misEnAvant" côté Sheet (nouveau système, back).
+ *   2. Repli : anciens ids codés en dur (compatibilité pendant la
+ *      transition, tant que le Sheet n'a pas encore la nouvelle colonne).
+ *   3. Repli final : les N premiers événements, pour ne jamais afficher
+ *      un carrousel vide même si rien n'est marqué nulle part.
  */
-// const nouveautes = computed(() =>
-//   currentLang.value === "fr"
-//     ? nouveautesFR
-//     : dynamicCache[currentLang.value]?.nouveautes || nouveautesFR,
-// );
+const selections = computed<AgendaEvent[]>(() => {
+  const flagged = agendaEvents.value.filter((ev) => ev.misEnAvant);
+  if (flagged.length) return flagged.slice(0, MAX_SELECTIONS);
+
+  const legacy = legacySelectionIds
+    .map((id) => agendaEvents.value.find((ev) => ev.id === id))
+    .filter((ev): ev is AgendaEvent => !!ev);
+  if (legacy.length) return legacy;
+
+  return agendaEvents.value.slice(0, MAX_SELECTIONS);
+});
 
 // ----------------------------------------------------------------
 // 4. FONCTIONS

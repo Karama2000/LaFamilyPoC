@@ -94,6 +94,7 @@ export interface AgendaEvent {
   autresAdresses?: string[]   // ex: ['Zurich', 'Berne']
     autresLieuxDates?: { lieu: string; date: string }[] // ex: [{ lieu: 'Fribourg', date: '14 septembre 2026' }]
   autresDatesISO?: { dateStart: string; dateEnd: string }[] // occurrences supplémentaires pour le filtrage par date
+   misEnAvant?: boolean; // NOUVEAU — optionnel pour ne pas casser le mock existant
 
 }
 

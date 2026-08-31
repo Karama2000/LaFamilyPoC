@@ -22,14 +22,14 @@ export const searchCategories: MenuLink[] = [
 export const searchCategoryToArticleKey: Record<string, string> = {
   catGrossesse: 'grossesse',
   catBebe: 'bebe',
-  catPetiteEnfance: 'petite enfance',
+  catPetiteEnfance: 'petiteEnfance',
   catEnfance: 'enfance',
   catAdolescence: 'adolescence',
   catScolarite: 'scolarite',
   catParents: 'parents',
-  catVieDeFamille: 'vie familiale',
+  catVieDeFamille: 'vieDeFamille',
   catTravail: 'travail',
-  catBudgetAssurance: 'budget et assurance',
+  catBudgetAssurance: 'assurances',
 }
 
 // "Activités" — chaque item pointe vers /agenda filtré (categorie: 'activite', sousCategorie: ...)

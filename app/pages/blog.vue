@@ -238,7 +238,7 @@ const filteredArticles = computed(() => {
           <!-- tous les cards -->
           <div
             v-if="filteredArticles.length"
-            class="cards-grid px-5 md:px-7 mx-auto mt-6 mb-6"
+            class="cards-grid px-5 md:px-7 mx-auto mt-6 mb-6  lg:!grid-cols-4"
           >
             <ArticleCard
               v-for="article in filteredArticles"

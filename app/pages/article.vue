@@ -5,13 +5,6 @@
 <!-- aussi une section "Agenda" et "Partenaires" en relation avec   -->
 <!-- la catégorie sélectionnée.                                     -->
 <!--                                                                -->
-<!-- MODIFICATIONS :                                                -->
-<!-- 1. Les boutons "Agenda" / "Partenaires" sont maintenant         -->
-<!--    TOUJOURS affichés (avant : v-if sur chacun selon qu'il y     -->
-<!--    avait des résultats). Un clic scrolle vers la section        -->
-<!--    correspondante, même si elle est vide pour l'instant.        -->
-<!-- 2. Ajout de la section "AGENDA EN RELATION" (id="agenda-section")-->
-<!--    qui manquait — seule la section Partenaires existait.        -->
 <!-- ====================================================== -->
 <script setup lang="ts">
 import { articleCategories } from "~/data/articleData";

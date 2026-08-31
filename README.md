@@ -94,7 +94,7 @@ npm run preview   # prévisualisation
 
 Le composable `app/composables/useTranslation.ts` utilise le français comme langue source et supporte `fr`, `en`, `de` et `it`. Il lit `app/data/staticTexts.ts`, applique les exceptions de `app/data/translationGlossary.ts`, appelle `POST {NUXT_PUBLIC_LIBRETRANSLATE_URL}/translate`, met les résultats en cache mémoire et conserve le français en cas d’erreur. Le cache est perdu lors d’un rechargement complet et certains contenus mockés peuvent rester en français.
 
-## Routes
+## Routes historiques / principales
 
 | URL | Fichier | Fonction |
 |---|---|---|
@@ -123,6 +123,10 @@ app/
 public/images/               # logos, icônes et visuels
 nuxt.config.ts               # configuration Nuxt/Vite/runtime
 tailwind.config.ts           # thème Tailwind
+server/
+├── api/                     # endpoints Nitro agenda, articles, partenaires et images
+├── data/                    # données serveur d’articles
+└── utils/                   # normalisation et services d’images
 ```
 
 Composants principaux : `SiteHeader`, `SiteFooter`, `FixedMobileHeader`, `HeroSection`, `PageHero`, `SelectionCarousel`, `BlogSection`, `ArticleCard`, `AgendaEventCard`, `AgendaFilterDrawer`, `AgendaDatePicker`, `PartnerCard`, `PartnersFilterBar`, `NewsletterSection` et `TarifCard`.
@@ -152,7 +156,7 @@ Le mobile utilise un header fixe, un menu drawer, un bandeau de coups de cœur e
 - traduction dépendante de LibreTranslate ;
 - choix de langue non persisté ;
 - aucun test, lint, formatter ou CI configuré ;
-- aucune API, authentification, CMS ou back-office ;
+- pas de back-office ni de CMS ; les endpoints Nitro agenda/partenaires existent mais leurs sources dépendent de webhooks n8n ;
 - SEO et accessibilité à compléter ;
 - certains logos partenaires et mappings de filtres restent à vérifier.
 

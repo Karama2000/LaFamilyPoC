@@ -102,7 +102,7 @@ onUnmounted(() => {
         <BaseButton
           variant="peach"
           class="!mt-1"
-          :to="`/agenda/${currentItem.id}`"
+          :to="`/agendaFolder/${currentItem.id}`"
         >
           {{ t("enSavoirPlus") }}
         </BaseButton>
@@ -209,7 +209,7 @@ onUnmounted(() => {
                  le nombre de lignes du texte au-dessus. -->
             <BaseButton
               variant="peach"
-              :to="`/agenda/${currentItem.id}`"
+              :to="`/agendaFolder/${currentItem.id}`"
               class="mt-6 self-center md:!px-12 md:!py-2.5 md:!text-[17px]"
             >
               {{ t("enSavoirPlus") }}

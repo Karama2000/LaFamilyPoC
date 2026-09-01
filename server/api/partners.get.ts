@@ -61,6 +61,37 @@ function value(row: RawRow, ...keys: string[]): string {
   return entry ? String(entry[1]).trim() : ''
 }
 
+/** Déplie les formats courants renvoyés par n8n et Google Sheets. */
+function rowsFromWebhookResponse(rawResponse: unknown): RawRow[] {
+  let candidate: unknown = rawResponse
+  if (typeof candidate === 'string') {
+    try {
+      return rowsFromWebhookResponse(JSON.parse(candidate))
+    } catch {
+      return []
+    }
+  }
+  if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+    const envelope = candidate as Record<string, unknown>
+    const nested = envelope.data ?? envelope.items ?? envelope.body ?? envelope.json
+    if (nested !== undefined && nested !== candidate) {
+      return rowsFromWebhookResponse(nested)
+    }
+  }
+  if (!Array.isArray(candidate)) return []
+
+  return candidate.flatMap((item): RawRow[] => {
+    if (!item || typeof item !== 'object') return []
+    const object = item as Record<string, unknown>
+    const nested = object.json ?? object.data ?? object.body
+    if (nested !== undefined && nested !== object) {
+      const nestedRows = rowsFromWebhookResponse(nested)
+      return nestedRows.length ? nestedRows : [object]
+    }
+    return [object]
+  })
+}
+
 function slugify(name: string): string {
   return normalizeKey(name) || 'partenaire'
 }
@@ -129,16 +160,8 @@ export default defineEventHandler(async (): Promise<Partner[]> => {
   try {
     const config = useRuntimeConfig()
     const rawResponse = await $fetch<unknown>(config.n8nPartnersWebhookUrl)
-    const responseObject: { data?: unknown; items?: unknown; body?: unknown } = rawResponse as { data?: unknown; items?: unknown; body?: unknown }
-    const candidate: unknown = Array.isArray(rawResponse)
-      ? rawResponse
-      : (responseObject.data ?? responseObject.items ?? responseObject.body ?? [])
-    const parsed: unknown = typeof candidate === 'string'
-      ? (() => { try { return JSON.parse(candidate) as unknown } catch { return [] as unknown[] } })()
-      : candidate
-    const rows: RawRow[] = Array.isArray(parsed)
-      ? parsed.filter((row: unknown): row is RawRow => Boolean(row && typeof row === 'object'))
-      : []
+    const rows = rowsFromWebhookResponse(rawResponse)
+
     const usedIds = new Set<number>()
     const partners: Partner[] = rows.map((row: RawRow, index: number) => normalizeRow(row, index)).filter((partner: Partner) => {
       if (usedIds.has(partner.id)) return false

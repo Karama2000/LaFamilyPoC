@@ -117,7 +117,7 @@ const totalActive = computed(
 // Icônes (MenuIcon) affichées sur les cartes de tranche d'âge — noms de fichiers du dossier icones/menu
 const ageIcon: Record<string, string> = {
   bebe: "bebe",
-  petitEnfant: "petite enfance",
+  petitEnfant: "petiteEnfance",
   enfant: "enfance",
   adolescent: "adolescence",
   adulte: "travail",

@@ -3,15 +3,7 @@
 <!-- DESCRIPTION : Page de détail d'un partenaire.                -->
 <!-- Route dynamique Nuxt : /partenaire/:id (id = Partner.id)     -->
 <!--                                                                -->
-<!-- MODIFICATIONS (version desktop, mobile inchangé) :            -->
-<!-- 1. Bannière rose translucide desktop dans le hero (comme       -->
-<!--    article.vue / partenaires.vue / agenda.vue).                -->
-<!-- 2. "À propos" + "Coordonnées" englobées avec la sidebar         -->
-<!--    CoupsDeCoeurSidebar (desktop uniquement).                    -->
-<!-- 3. "Bienvenue chez [partenaire]" (descriptions) revient en      -->
-<!--    pleine largeur, hors du conteneur avec sidebar.              -->
-<!-- 4. Galerie photos : 3 grandes photos par ligne en desktop.      -->
-<!-- 5. Événements du partenaire : pleine largeur, grille desktop.   -->
+
 <!-- ============================================================ -->
 
 <script setup lang="ts">

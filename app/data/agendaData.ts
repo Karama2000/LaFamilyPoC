@@ -102,24 +102,24 @@ export interface AgendaEvent {
 // contenu dynamique de l'agenda (ex. venant de Google Sheets / API).
 
 export const agendaEventsFR: AgendaEvent[] = [
-  // {
-  //   id: '1', titre: 'Spectacle de marionnettes « Le Petit Roi »', lieu: 'Théâtre de Vidy, Lausanne',
-  //   cantonKey: 'VD', date: 'Sam. 8 août 2026', dateStart: '2026-08-08', dateEnd: '2026-08-08', image: '/images/sélection/1.jpeg',
-  //   categorie: 'activite', sousCategorie: 'actCulturelles', ageKeys: ['petitEnfant', 'enfant'],partnerId: 8,
-  //   horaires: '14h à 15h',
-  //   tarif: 'CHF 15.– (enfants) / CHF 20.– (adultes)',
-  //   description: 'Une compagnie de marionnettistes présente « Le Petit Roi », un conte poétique et drôle qui emmène petits et grands dans un royaume imaginaire peuplé de créatures attachantes. Le spectacle mêle marionnettes à fils, ombres chinoises et musique live pour une expérience immersive adaptée dès 3 ans.',
-  //   infoComplementaire: 'Durée : 50 minutes, sans entracte. Places limitées, réservation conseillée.',
-  //   contactTel: '021 619 45 45',
-  //   contactEmail: 'billetterie@vidy.ch',
-  //   siteUrl: 'https://vidy.ch',
-  //   autresDates: ['8 août', '15 août', '22 août'],
-  //   autresAdresses: ['Zurich', 'Berne'],
-  //   autresLieuxDates: [
-  //     { lieu: 'Fribourg', date: '14 septembre 2026' },
-  //     { lieu: 'Lausanne', date: '12 décembre 2026' },
-  //   ],
-  // },
+  {
+    id: '1', titre: 'Spectacle de marionnettes « Le Petit Roi »', lieu: 'Théâtre de Vidy, Lausanne',
+    cantonKey: 'VD', date: 'Sam. 8 août 2026', dateStart: '2026-08-08', dateEnd: '2026-08-08', image: '/images/sélection/1.jpeg',
+    categorie: 'activite', sousCategorie: 'actCulturelles', ageKeys: ['petitEnfant', 'enfant'],partnerId: 8,
+    horaires: '14h à 15h',
+    tarif: 'CHF 15.– (enfants) / CHF 20.– (adultes)',
+    description: 'Une compagnie de marionnettistes présente « Le Petit Roi », un conte poétique et drôle qui emmène petits et grands dans un royaume imaginaire peuplé de créatures attachantes. Le spectacle mêle marionnettes à fils, ombres chinoises et musique live pour une expérience immersive adaptée dès 3 ans.',
+    infoComplementaire: 'Durée : 50 minutes, sans entracte. Places limitées, réservation conseillée.',
+    contactTel: '021 619 45 45',
+    contactEmail: 'billetterie@vidy.ch',
+    siteUrl: 'https://vidy.ch',
+    autresDates: ['8 août', '15 août', '22 août'],
+    autresAdresses: ['Zurich', 'Berne'],
+    autresLieuxDates: [
+      { lieu: 'Fribourg', date: '14 septembre 2026' },
+      { lieu: 'Lausanne', date: '12 décembre 2026' },
+    ],
+  },
   {
     id: '2', titre: 'Rando-découverte en famille', lieu: 'Parc naturel du Jorat',
     cantonKey: 'VD', date: 'Dim. 9 août 2026', dateStart: '2026-08-09', dateEnd: '2026-08-09', image: '/images/sélection/2.jpeg',

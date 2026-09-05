@@ -24,6 +24,7 @@ const { referenceRef, referenceHeight } = useReferenceHeight();
 // ----------------------------------------------------------------
 const { currentLang, t, setLang } = useTranslation();
 const router = useRouter();
+const route = useRoute();
 
 // Les données live passent par la route serveur fusionnée, qui protège les
 // webhooks n8n. Le contenu local reste disponible comme repli si le webhook
@@ -48,7 +49,7 @@ const agendaEvents = computed(() =>
  * @param lang - Code de la langue ('fr', 'de', etc.)
  */
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any);
 }
 
 // ----------------------------------------------------------------
@@ -70,6 +71,24 @@ const filters = reactive<AgendaFilters>({
   cours: [], // Sous-catégories de cours
   categories: [], // Grandes catégories sélectionnées depuis le menu
 });
+
+/** Synchronise les liens du menu avec les filtres de l’agenda. */
+watch(
+  () => [route.query.categorie, route.query.sousCategorie],
+  ([categorie, sousCategorie]) => {
+    const category = typeof categorie === "string" ? categorie : "";
+    const subcategory =
+      typeof sousCategorie === "string" ? sousCategorie : "";
+
+    filters.categories = category ? [category] : [];
+    filters.activites =
+      category === "activite" && subcategory ? [subcategory] : [];
+    filters.camps = [];
+    filters.campsJour = [];
+    filters.cours = category === "cours" && subcategory ? [subcategory] : [];
+  },
+  { immediate: true },
+);
 
 // ----------------------------------------------------------------
 // 5. MUTATIONS DES FILTRES
@@ -119,6 +138,7 @@ function resetFilters() {
   filters.camps = [];
   filters.campsJour = [];
   filters.cours = [];
+  filters.categories = [];
 }
 // ----------------------------------------------------------------
 // 5bis. BOUTON "CHERCHER" (carte de recherche par dates)
@@ -400,7 +420,7 @@ const filteredEvents = computed(() =>
 
       <!-- Bouton "Filtres" -->
       <BaseButton
-        v-if="!activeChips.length"
+        
         variant="pink"
         class="!py-3 md:shrink-0  !mt-2 !mb-4 mx-auto"
         @click="filtersOpen = true"

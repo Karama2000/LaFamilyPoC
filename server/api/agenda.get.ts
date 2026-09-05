@@ -94,6 +94,40 @@ function splitValues(input: unknown): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Déplie les formats renvoyés par n8n/Google Sheets : tableau direct, enveloppe
+ * data/events/items/body, chaîne JSON ou items n8n contenant une clé `json`.
+ */
+function rowsFromWebhookResponse(rawResponse: unknown): RawRow[] {
+  let candidate: unknown = rawResponse;
+  if (typeof candidate === "string") {
+    try {
+      return rowsFromWebhookResponse(JSON.parse(candidate));
+    } catch {
+      return [];
+    }
+  }
+  if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
+    const envelope = candidate as Record<string, unknown>;
+    const nested = envelope.data ?? envelope.events ?? envelope.items ?? envelope.body ?? envelope.json;
+    if (nested !== undefined && nested !== candidate) {
+      return rowsFromWebhookResponse(nested);
+    }
+  }
+  if (!Array.isArray(candidate)) return [];
+
+  return candidate.flatMap((item): RawRow[] => {
+    if (!item || typeof item !== "object") return [];
+    const object = item as Record<string, unknown>;
+    const nested = object.json ?? object.data ?? object.body;
+    if (nested !== undefined && nested !== object) {
+      const nestedRows = rowsFromWebhookResponse(nested);
+      return nestedRows.length ? nestedRows : [object];
+    }
+    return [object];
+  });
+}
+
 function parseOtherLocations(
   valueToParse: unknown,
 ): { lieu: string; date: string }[] {
@@ -1068,34 +1102,8 @@ export default defineEventHandler(async () => {
   try {
     const config = useRuntimeConfig();
     const rawResponse = await $fetch<unknown>(config.n8nAgendaWebhookUrl);
-    const responseObject = rawResponse as {
-      data?: unknown;
-      events?: unknown;
-      items?: unknown;
-      body?: unknown;
-    };
-    const candidate = Array.isArray(rawResponse)
-      ? rawResponse
-      : (responseObject.data ??
-        responseObject.events ??
-        responseObject.items ??
-        responseObject.body ??
-        []);
-    const parsedCandidate =
-      typeof candidate === "string"
-        ? (() => {
-            try {
-              return JSON.parse(candidate);
-            } catch {
-              return [];
-            }
-          })()
-        : candidate;
-    const rows: RawRow[] = Array.isArray(parsedCandidate)
-      ? (parsedCandidate as RawRow[])
-      : [];
+    const validRows = rowsFromWebhookResponse(rawResponse);
 
-    const validRows = rows.filter((row) => row && typeof row === "object");
     const repeatedRows = inheritRepeatedEventFields(validRows);
 
     // Un seul événement par groupe (= 1 carte par titre), les occurrences
@@ -1115,7 +1123,8 @@ export default defineEventHandler(async () => {
         const autresDatesISO = buildAutresDatesISO(otherRows);
         const imageUrl = normalized.imageUrl;
 
-        const eventData: Omit<NormalizedAgendaEvent, "image"> = {
+                const eventData: Omit<NormalizedAgendaEvent, "image"> = {
+
           id: normalized.id,
           titre: normalized.titre,
           lieu: normalized.lieu,
@@ -1142,7 +1151,10 @@ export default defineEventHandler(async () => {
           siteUrl: normalized.siteUrl,
           seoDescription: normalized.seoDescription,
           seoKeywords: normalized.seoKeywords,
-          misEnAvant: normalized.misEnAvant,
+          // Le marqueur peut être renseigné sur n’importe quelle ligne d’une
+          // série d’occurrences : il doit donc être agrégé au niveau du groupe.
+          misEnAvant: group.some((row) => misEnAvantFromRow(row)),
+
           ...autresOccurrences,
           ...(autresDatesISO.length ? { autresDatesISO } : {}),
         };

@@ -18,12 +18,14 @@ type Lang = 'fr' | 'en' | 'de' | 'it'
 const currentLang = ref<Lang>('fr')                 // langue actuellement affichée sur le site
 const isTranslating = ref(false)                    // true pendant qu'une traduction est en cours (pour afficher un loader par ex.)
 const staticCache = reactive<Record<string, Record<string, string>>>({})   // cache des textes statiques déjà traduits, par langue
-const dynamicCache = reactive<Record<string, { selections: ContentItem[]; nouveautes: ContentItem[] }>>({}) // cache du contenu dynamique (carrousels) déjà traduit, par langue
+
+// Cache générique du contenu DYNAMIQUE (événements agenda, partenaires,
+// articles...) déjà traduit, indexé par "<cacheKey>:<id>:<lang>".
+// Remplace l'ancien dynamicCache qui ne couvrait que selections/nouveautes
+// et n'était de toute façon jamais lu par les composants.
+const dynamicItemCache = reactive<Record<string, Record<string, any>>>({})
 
 export function useTranslation() {
-  const config = useRuntimeConfig()
-  const libretranslateUrl = config.public.libretranslateUrl as string
-
   // Fonction de traduction utilisée dans les templates : t('maCle')
   // Retourne le texte français si la langue courante est 'fr', sinon la
   // version mise en cache pour la langue courante (ou le FR/la clé brute
@@ -50,9 +52,10 @@ export function useTranslation() {
       return translationOverrides[exactOverride]?.[target as 'en' | 'de' | 'it'] ?? text
     }
 
-    // 2) Appel API générique (LibreTranslate)
+    // 2) Appel API générique (LibreTranslate), via la route serveur /api/translate
+    //    (l'URL réelle de LibreTranslate reste côté serveur, cf. nuxt.config.ts)
     try {
-      const data = await $fetch<{ translatedText: string }>(`${libretranslateUrl}/translate`, {
+      const data = await $fetch<{ translatedText: string }>('/api/translate', {
         method: 'POST',
         body: { q: text, source: 'fr', target, format: 'text' }
       })
@@ -74,42 +77,72 @@ export function useTranslation() {
     staticCache[lang] = Object.fromEntries(entries)
   }
 
-  // Traduit le contenu dynamique des carrousels (sélections + nouveautés)
-  // vers la langue donnée, et met le résultat en cache. Ne fait rien si
-  // la langue est déjà en cache ou si c'est le français.
-  async function translateDynamicContent(lang: Lang, selectionsFR: ContentItem[], nouveautesFR: ContentItem[]) {
-    if (lang === 'fr' || dynamicCache[lang]) return
-    const [selTr, nouvTr] = await Promise.all([
-      Promise.all(selectionsFR.map(async item => ({
-        ...item,
-        titre: await translateText(item.titre, lang),
-        description: await translateText(item.description, lang)
-      }))),
-      Promise.all(nouveautesFR.map(async item => ({
-        ...item,
-        titre: await translateText(item.titre, lang),
-        description: await translateText(item.description, lang)
-      })))
-    ])
-    dynamicCache[lang] = { selections: selTr, nouveautes: nouvTr }
+  // Traduit UN item de contenu dynamique (événement agenda, partenaire,
+  // article...) sur les champs texte demandés, et met le résultat en
+  // cache par id+langue. Réutilisable depuis n'importe quelle page/liste :
+  // deux pages qui affichent le même item (ex: liste agenda + détail
+  // agenda) partagent le même cache, pas de re-traduction inutile.
+  //
+  //   translateItem('en', 'agenda', event.id, event, ['titre', 'lieu'])
+  async function translateItem<T extends Record<string, any>>(
+    lang: Lang,
+    cacheKey: string,
+    id: string | number,
+    item: T,
+    fields: (keyof T)[]
+  ): Promise<T> {
+    if (lang === 'fr' || !item) return item
+    const cacheId = `${cacheKey}:${id}`
+    dynamicItemCache[lang] ??= {}
+    if (dynamicItemCache[lang][cacheId]) return dynamicItemCache[lang][cacheId]
+
+    const copy: any = { ...item }
+    await Promise.all(
+      fields.map(async (field) => {
+        const value = item[field]
+        if (typeof value === 'string' && value.trim()) {
+          copy[field] = await translateText(value, lang)
+        }
+      })
+    )
+    dynamicItemCache[lang][cacheId] = copy
+    return copy
+  }
+
+  // Traduit une LISTE d'items dynamiques (événements, partenaires,
+  // articles...) en parallèle. `idField` sert de clé de cache par
+  // défaut sur 'id'.
+  //
+  //   translateItems('en', 'agenda', agendaEvents, ['titre', 'lieu'])
+  async function translateItems<T extends Record<string, any>>(
+    lang: Lang,
+    cacheKey: string,
+    items: T[],
+    fields: (keyof T)[],
+    idField: keyof T = 'id' as keyof T
+  ): Promise<T[]> {
+    if (lang === 'fr' || !items?.length) return items
+    return Promise.all(
+      items.map((item) => translateItem(lang, cacheKey, item[idField], item, fields))
+    )
   }
 
   // Change la langue active du site : bascule immédiatement en français
-  // (déjà disponible), ou déclenche la traduction (textes statiques +
-  // contenu dynamique en parallèle) si la langue n'est pas encore en cache.
-  async function setLang(lang: Lang, selectionsFR: ContentItem[], nouveautesFR: ContentItem[]) {
+  // (déjà disponible), ou déclenche la traduction des textes statiques
+  // si la langue n'est pas encore en cache. La traduction du contenu
+  // dynamique (agenda/partenaires/articles) est déclenchée séparément
+  // par chaque page via translateItems/translateItem (voir plus haut),
+  // car chaque page a des données et des champs différents.
+  async function setLang(lang: Lang) {
     currentLang.value = lang
     if (lang === 'fr') return
     isTranslating.value = true
     try {
-      await Promise.all([
-        translateStaticTexts(lang),
-        translateDynamicContent(lang, selectionsFR, nouveautesFR)
-      ])
+      await translateStaticTexts(lang)
     } finally {
       isTranslating.value = false
     }
   }
 
-  return { currentLang, isTranslating, t, setLang, dynamicCache }
+  return { currentLang, isTranslating, t, setLang, translateItem, translateItems }
 }

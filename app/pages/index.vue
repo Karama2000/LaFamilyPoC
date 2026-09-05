@@ -7,12 +7,11 @@
 //--------------------------------------------------------
 // 1. IMPORTS
 // -------------------------------------------------------
-import { agendaEventsFR } from "~/data/agendaData";
 import type { AgendaEvent } from "~/data/agendaData";
 
 // pages/index.vue — <script setup>
 import type { ContentItem } from "~/data/mockContent";
-import { nouveautesFR } from "~/data/mockContent"; // conservé en repli
+import { nouveautesFR } from "~/data/mockContent";
 
 interface Article {
   id: string;
@@ -37,54 +36,35 @@ const nouveautes = computed<ContentItem[]>(() => {
 // ----------------------------------------------------------------
 // 2. COMPOSABLES & ÉTAT
 // ----------------------------------------------------------------
-const { currentLang, isTranslating, t, setLang, dynamicCache } =
+const { currentLang, isTranslating, t, setLang, translateItems } =
   useTranslation();
 
 // ----------------------------------------------------------------
 // 3. SÉLECTION (carrousel "Notre sélection") — DONNÉES BACK
 // ----------------------------------------------------------------
 // Même route que la page Agenda : /api/agenda interroge le webhook n8n
-// (Google Sheet), normalise les lignes, et renvoie tous les événements.
-// En cas d'échec du webhook, on retombe sur les données mock locales
-// (agendaEventsFR) pour ne jamais casser la page d'accueil.
+// (Google Sheet), normalise les lignes et renvoie tous les événements.
 const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>(
   "/api/agenda",
-  {
-    default: () => agendaEventsFR,
-  },
+  { default: () => [] },
 );
 
-const agendaEvents = computed<AgendaEvent[]>(() =>
-  apiAgendaEvents.value?.length ? apiAgendaEvents.value : agendaEventsFR,
-);
-
-/** Nombre maximum d'items affichés dans le carrousel "Notre sélection" */
+/** Nombre maximum d’items affichés dans le carrousel "Sélection de la semaine" */
 const MAX_SELECTIONS = 6;
 
-// Anciens ids codés en dur, gardés UNIQUEMENT comme filet de sécurité tant
-// que le Sheet ne possède pas encore la colonne "Sélection"/"Mis en avant".
-const legacySelectionIds = ["1", "3", "9", "11"];
-
 /**
- * Sélections mises en avant pour le carrousel de la page d'accueil.
- * Ordre de priorité :
- *   1. Événements marqués "misEnAvant" côté Sheet (nouveau système, back).
- *   2. Repli : anciens ids codés en dur (compatibilité pendant la
- *      transition, tant que le Sheet n'a pas encore la nouvelle colonne).
- *   3. Repli final : les N premiers événements, pour ne jamais afficher
- *      un carrousel vide même si rien n'est marqué nulle part.
+ * Sélection de la semaine : seuls les événements réels renvoyés par l’API
+ * Agenda dont la colonne « À la une » vaut « Oui » sont affichés.
+ *
+ * Le back convertit cette valeur en `misEnAvant: true`. Aucun repli vers les
+ * données mock n’est appliqué afin que le carrousel reste strictement aligné
+ * sur le contenu publié dans le Sheet.
  */
-const selections = computed<AgendaEvent[]>(() => {
-  const flagged = agendaEvents.value.filter((ev) => ev.misEnAvant);
-  if (flagged.length) return flagged.slice(0, MAX_SELECTIONS);
-
-  const legacy = legacySelectionIds
-    .map((id) => agendaEvents.value.find((ev) => ev.id === id))
-    .filter((ev): ev is AgendaEvent => !!ev);
-  if (legacy.length) return legacy;
-
-  return agendaEvents.value.slice(0, MAX_SELECTIONS);
-});
+const selections = computed<AgendaEvent[]>(() =>
+  (apiAgendaEvents.value ?? [])
+    .filter((event) => event.misEnAvant === true)
+    .slice(0, MAX_SELECTIONS),
+);
 
 // ----------------------------------------------------------------
 // 4. FONCTIONS
@@ -95,8 +75,53 @@ const selections = computed<AgendaEvent[]>(() => {
  * @param lang - Code de la langue cible
  */
 function onLangChange(lang: string) {
-  setLang(lang as any, [], nouveautesFR);
+  setLang(lang as any);
 }
+
+// ----------------------------------------------------------------
+// 5. TRADUCTION DU CONTENU DYNAMIQUE (sélections + nouveautés)
+// ----------------------------------------------------------------
+// Contrairement aux textes statiques (t()), "selections" et "nouveautes"
+// viennent du back (Google Sheet via n8n) : leur contenu doit être
+// traduit à la volée via translateItems, puis mis en cache par item.
+// On garde des refs séparées affichées dans le template plutôt que le
+// FR brut, pour que EN/DE/IT s'affichent bien sur le carrousel et le blog.
+const translatedSelections = ref<AgendaEvent[]>([]);
+const translatedNouveautes = ref<ContentItem[]>([]);
+
+watch(
+  [selections, currentLang],
+  async ([items, lang]) => {
+    translatedSelections.value =
+      lang === "fr"
+        ? items
+        : await translateItems(lang as any, "agenda-selection", items, [
+            "titre",
+            "description",
+          ]);
+  },
+  { immediate: true },
+);
+
+watch(
+  [nouveautes, currentLang],
+  async ([items, lang]) => {
+    translatedNouveautes.value =
+      lang === "fr"
+        ? items
+        : await translateItems(
+            lang as any,
+            "article-nouveaute",
+            items,
+            ["titre", "description"],
+            // les articles issus de l'API ont un id ; le mock de repli
+            // (nouveautesFR) n'en a pas -> on retombe sur le titre FR
+            // comme clé de cache pour ne jamais planter.
+            "titre" as any,
+          );
+  },
+  { immediate: true },
+);
 </script>
 
 <!-- ============================================================ -->
@@ -148,11 +173,7 @@ function onLangChange(lang: string) {
         class="md:hidden fixed top-0 left-0 right-0 z-[100]"
         style="background: #e61171"
       >
-        <FixedMobileHeader
-          :t="t"
-          :current-lang="currentLang"
-          @set-lang="onLangChange"
-        />
+        <FixedMobileHeader />
       </div>
 
       <div class="h-[265px] md:hidden"></div>
@@ -162,7 +183,6 @@ function onLangChange(lang: string) {
           :t="t"
           :current-lang="currentLang"
           @set-lang="onLangChange"
-          class=""
         />
       </div>
 

@@ -14,7 +14,7 @@ import {
   activitesItems,
   vacancesItems,
   coursItems,
-  menuLinkTarget,
+  
 } from "~/data/menuData";
 
 defineProps<{
@@ -440,7 +440,7 @@ onBeforeUnmount(() => {
                       :key="item.key"
                       variant="thinOutline"
                       :to="{
-                        path: '/agenda',
+                        path: '/menu/agenda',
                         query: {
                           categorie: 'activite',
                           sousCategorie: item.key,
@@ -496,7 +496,7 @@ onBeforeUnmount(() => {
                       :key="item.key"
                       variant="thinOutline"
                       :to="{
-                        path: '/agenda',
+                        path: '/menu/agenda',
                         query: {
                           categorie:
                             item.key === 'vacCamps'
@@ -554,7 +554,7 @@ onBeforeUnmount(() => {
                       :key="item.key"
                       variant="thinOutline"
                       :to="{
-                        path: '/agenda',
+                        path: '/menu/agenda',
                         query: {
                           categorie: 'cours',
                           sousCategorie: item.key,

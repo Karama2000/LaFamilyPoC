@@ -6,12 +6,52 @@
   catégorie, nom et bouton "visiter le site".
 -->
 <script setup lang="ts">
+import { computed, ref, watch } from "vue";
 import type { Partner } from "~/data/partnersData";
 
-defineProps<{
+const props = defineProps<{
   partner: Partner; // données du partenaire à afficher
   t: (key: string) => string; // fonction de traduction (i18n)
 }>();
+
+// Alias utilisés par le template existant, afin de ne modifier ni la carte
+// ni sa mise en page.
+const partner = computed(() => props.partner);
+const t = (key: string) => props.t(key);
+
+// Images de repli déjà présentes dans /public/images/partners.
+const defaultLogoByCategory: Record<string, string> = {
+  partnerCatAssociation: "/images/partners/association.png",
+  partnerCatCabinet: "/images/partners/cabinet.png",
+  partnerCatEcole: "/images/partners/ecole.png",
+  partnerCatExpert: "/images/partners/expert.png",
+  partnerCatGardeEnfants: "/images/partners/garde-enfant.png",
+  partnerCatMusee: "/images/partners/musee.png",
+};
+
+const fallbackLogo = computed(
+  () =>
+    defaultLogoByCategory[props.partner.category] ??
+    "/images/partners/association.png",
+);
+const logoFailed = ref(false);
+
+const displayedLogo = computed(() =>
+  logoFailed.value || !props.partner.logo
+    ? fallbackLogo.value
+    : props.partner.logo,
+);
+
+function useFallbackLogo() {
+  logoFailed.value = true;
+}
+
+watch(
+  () => props.partner.logo,
+  () => {
+    logoFailed.value = false;
+  },
+);
 </script>
 
 <template>
@@ -28,10 +68,10 @@ defineProps<{
       style="background: #fff8f4; border: 2px solid #ffe4d3"
     >
       <img
-        :src="partner.logo"
+        :src="displayedLogo"
         :alt="partner.name"
         class="w-full h-full object-contain p-2"
-        @error="($event.target as HTMLImageElement).style.display = 'none'"
+        @error="useFallbackLogo"
       />
     </div>
 

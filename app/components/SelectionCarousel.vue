@@ -31,14 +31,24 @@ const currentItem = computed(() => props.selections[currentSlide.value]);
 
 // Passe à la diapositive suivante (en boucle)
 function nextSlide() {
+  if (!props.selections.length) return;
   currentSlide.value = (currentSlide.value + 1) % props.selections.length;
 }
 // Revient à la diapositive précédente (en boucle)
 function prevSlide() {
+  if (!props.selections.length) return;
   currentSlide.value =
     (currentSlide.value - 1 + props.selections.length) %
     props.selections.length;
 }
+
+// Réinitialise l’index si la réponse API remplace la liste affichée.
+watch(
+  () => props.selections.length,
+  (length) => {
+    if (!length || currentSlide.value >= length) currentSlide.value = 0;
+  },
+);
 
 // Défilement automatique toutes les 5 secondes
 let autoplayTimer: ReturnType<typeof setInterval> | null = null;
@@ -81,9 +91,10 @@ onUnmounted(() => {
 
       <!-- Bouton Catégorie -->
       <div
+        v-if="currentItem"
         class="absolute top-[3%] left-[3%] z-20 flex items-center justify-center rounded-[10px] border-[1.5px] border-[#FFD1B5] bg-white/90 px-[clamp(12px,2.5vw,20px)] py-[clamp(7px,1.2vw,12px)]"
       >
-        <BaseButton v-if="currentItem" variant="badgeLarge">
+        <BaseButton variant="badgeLarge">
           {{ t(categoryLabel[currentItem.categorie]) }}
         </BaseButton>
       </div>
@@ -108,8 +119,9 @@ onUnmounted(() => {
         </BaseButton>
       </div>
 
-      <!-- Flèches de navigation précédent/suivant -->
+      <!-- Flèches de navigation précédent/suivant (masquées s'il n'y a rien à faire défiler) -->
       <button
+        v-if="currentItem"
         @click="prevSlide"
         class="absolute left-2 top-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-full flex items-center justify-center z-30 shadow-md"
         style="background: #ff863d"
@@ -119,6 +131,7 @@ onUnmounted(() => {
       </button>
 
       <button
+        v-if="currentItem"
         @click="nextSlide"
         class="absolute right-2 top-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-full flex items-center justify-center z-30 shadow-md"
         style="background: #ff863d"
@@ -162,9 +175,10 @@ onUnmounted(() => {
         <!-- Bouton Catégorie -->
 
         <div
+          v-if="currentItem"
           class="absolute top-[3%] left-[3%] z-20 flex items-center justify-center rounded-[10px] border-[1.5px] border-[#FFD1B5] bg-white/90 px-[clamp(12px,2.5vw,20px)] py-[clamp(7px,1.2vw,12px)]"
         >
-          <BaseButton v-if="currentItem" variant="badgeLarge">
+          <BaseButton variant="badgeLarge">
             {{ t(categoryLabel[currentItem.categorie]) }}
           </BaseButton>
         </div>
@@ -225,6 +239,7 @@ onUnmounted(() => {
         l'extérieur) — comme sur la capture fournie.
       -->
       <button
+        v-if="currentItem"
         @click="prevSlide"
         class="absolute left-4 top-1/2 -translate-y-1/2 w-[60px] h-[60px] rounded-full flex items-center justify-center text-white z-20 shadow-lg"
         style="background: #ff863d"
@@ -234,6 +249,7 @@ onUnmounted(() => {
       </button>
 
       <button
+        v-if="currentItem"
         @click="nextSlide"
         class="absolute right-4 top-1/2 -translate-y-1/2 w-[60px] h-[60px] rounded-full flex items-center justify-center text-white z-20 shadow-lg"
         style="background: #ff863d"

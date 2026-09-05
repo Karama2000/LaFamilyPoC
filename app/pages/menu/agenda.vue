@@ -1,6 +1,6 @@
 <!-- ============================================================ -->
-<!-- FICHIER : pages/menuFolder/agenda.vue                        -->
-<!-- DESCRIPTION : Page Agenda pré-filtrée depuis le menu          -->
+<!-- FICHIER : pages/menu/agenda.vue                              -->
+<!-- DESCRIPTION : Vue Agenda pré-filtrée depuis le menu          -->
 <!-- (Activités / Vacances enfants / Cours). Reçoit ?categorie=...  -->
 <!-- et ?sousCategorie=... (voir menuLinkTarget dans menuData.ts)  -->
 <!--                                                                -->
@@ -20,6 +20,7 @@
 <!-- ============================================================ -->
 <script setup lang="ts">
 import { agendaEventsFR } from "~/data/agendaData";
+import type { AgendaEvent } from "~/data/agendaData";
 import { activitesItems, vacancesItems, coursItems } from "~/data/menuData";
 import CoupsDeCoeurSidebar from "~/components/CoupsDeCoeurSidebar.vue";
 import { useReferenceHeight } from "~/composables/useReferenceHeight";
@@ -30,8 +31,16 @@ const { currentLang, t, setLang } = useTranslation();
 const route = useRoute();
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any);
 }
+
+// Utilise exactement la même source de données que l’agenda principal.
+const { data: apiAgendaEvents } = useFetch<AgendaEvent[]>("/api/agenda", {
+  default: () => agendaEventsFR,
+});
+const agendaEvents = computed(() =>
+  apiAgendaEvents.value?.length ? apiAgendaEvents.value : agendaEventsFR,
+);
 
 const categorieParam = computed(() =>
   typeof route.query.categorie === "string" ? route.query.categorie : "",
@@ -43,14 +52,14 @@ const sousCategorieParam = computed(() =>
 );
 
 const pageTitle = computed(() => {
-  if (categorieParam.value === "activite" && sousCategorieParam.value) {
-    return t(sousCategorieParam.value);
+  if (categorieParam.value === "activite") return t("navActivites");
+  if (
+    categorieParam.value === "campLogement" ||
+    categorieParam.value === "campJour"
+  ) {
+    return t("navVacances");
   }
-  if (categorieParam.value === "campLogement") return t("vacCamps");
-  if (categorieParam.value === "campJour") return t("vacCampsDuJour");
-  if (categorieParam.value === "cours" && sousCategorieParam.value) {
-    return t(sousCategorieParam.value);
-  }
+  if (categorieParam.value === "cours") return t("navCours");
   return t("agendaTitle");
 });
 
@@ -91,7 +100,7 @@ function onSearch() {
 }
 
 const filteredEvents = computed(() => {
-  return agendaEventsFR.filter((ev) => {
+  return agendaEvents.value.filter((ev) => {
     if (categorieParam.value && ev.categorie !== categorieParam.value)
       return false;
     if (

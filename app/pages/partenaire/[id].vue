@@ -43,7 +43,7 @@ const agendaEvents = computed(() =>
 );
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any, );
 }
 
 // ----------------------------------------------------------------
@@ -109,8 +109,6 @@ const coverageBadges = computed(() =>
       </svg>
 
       <!-- Vague — DESKTOP -->
-
-      <!-- En-tête -->
       <FixedMobileHeader
         :t="t"
         :current-lang="currentLang"

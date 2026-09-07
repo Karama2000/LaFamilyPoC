@@ -328,4 +328,6 @@ agendaSunday: "So",
 
 agendaPreviousMonth: "Vorheriger Monat",
 agendaNextMonth: "Nächster Monat",
+
+lePlusChoisi: "Am häufigsten gewählt",
 };

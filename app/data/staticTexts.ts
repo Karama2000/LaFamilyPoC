@@ -347,4 +347,7 @@ agendaSunday: "di",
 
 agendaPreviousMonth: "Mois précédent",
 agendaNextMonth: "Mois suivant",
+
+
+lePlusChoisi: "Le plus choisi",
 };

@@ -330,4 +330,6 @@ agendaSunday: "do",
 
 agendaPreviousMonth: "Mese precedente",
 agendaNextMonth: "Mese successivo",
+
+lePlusChoisi: "Il più scelto",
 };

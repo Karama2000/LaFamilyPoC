@@ -1,4 +1,7 @@
-import { articlesData, type ArticleRaw } from '../data/articles.data'
+import { articlesData as articlesFR, type ArticleRaw } from '../data/articles.data'
+import { articlesData as articlesEN } from '../data/articles.en'
+import { articlesData as articlesIT } from '../data/articles.it'
+import { articlesData as articlesDE } from '../data/articles.de'
 
 interface Article {
   id: string
@@ -52,6 +55,14 @@ const CATEGORY_TO_PARTNER_CATS: Record<string, string[]> = {
   assurances: ['partnerCatCabinet', 'partnerCatExpert'],
 }
 
+// Une seule source de vérité pour la liste des langues supportées
+const DATA_BY_LANG: Record<string, ArticleRaw[]> = {
+  fr: articlesFR,
+  en: articlesEN,
+  it: articlesIT,
+  de: articlesDE,
+}
+
 function makeExcerpt(text: string, max = 150): string {
   const clean = text.replace(/\s+/g, ' ').trim()
   return clean.length > max ? `${clean.slice(0, max).trim()}…` : clean
@@ -70,14 +81,19 @@ function normalizeRow(row: ArticleRaw): Omit<Article, 'relatedEventIds' | 'relat
   }
 }
 
-export default defineEventHandler(async (): Promise<Article[]> => {
+export default defineEventHandler(async (event): Promise<Article[]> => {
+  const query = getQuery(event)
+  const requestedLang = typeof query.lang === 'string' ? query.lang : 'fr'
+  const lang = DATA_BY_LANG[requestedLang] ? requestedLang : 'fr' // fallback si langue inconnue
+  const source = DATA_BY_LANG[lang]
+
   try {
     const [partners, agendaEvents] = await Promise.all([
       $fetch<Array<{ id: number; category: string }>>('/api/partners'),
       $fetch<Array<{ id: string; ageKeys: string[] }>>('/api/agenda'),
     ])
 
-    return articlesData.map(normalizeRow).map((article) => {
+    return source.map(normalizeRow).map((article) => {
       const ageKeys = CATEGORY_TO_AGE_KEYS[article.category] || []
       const partnerCats = CATEGORY_TO_PARTNER_CATS[article.category] || []
 
@@ -95,6 +111,5 @@ export default defineEventHandler(async (): Promise<Article[]> => {
     })
   } catch (error) {
     console.error('[api/articles] Erreur:', error)
-    return articlesData.map(normalizeRow).map((a) => ({ ...a, relatedEventIds: [], relatedPartnerIds: [] }))
-  }
-})
+    return source.map(normalizeRow).map((a) => ({ ...a, relatedEventIds: [], relatedPartnerIds: [] }))
+  }})

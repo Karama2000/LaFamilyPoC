@@ -195,13 +195,13 @@ function removeChip(chip: { group: string; key: string }) {
           @click="zoneOpen ? (zoneOpen = false) : openZoneDropdown()"
         >
           <span class="flex items-center gap-1.5 truncate">
-            <template v-if="zone.length === 0"> Toute la Suisse </template>
+            <template v-if="zone.length === 0"> {{t("filterRegionAll")}} </template>
 
             <template v-else-if="zone.length === 1">
               {{ zones.find((z) => z.key === zone[0])?.label }}
             </template>
 
-            <template v-else> {{ zone.length }} cantons sélectionnés </template>
+            <template v-else> {{ zone.length }} {{ t("cantons_sélectionnés") }} </template>
           </span>
 
           <svg
@@ -241,7 +241,7 @@ function removeChip(chip: { group: string; key: string }) {
                 <input
                   v-model="zoneSearch"
                   type="text"
-                  placeholder="Rechercher un canton..."
+                  :placeholder= "t('rechercherCanton')"
                   class="w-full h-[32px] rounded-[10px] outline-none pl-[36px] pr-3 font-semibold"
                   style="
                     background: #fff8f4;
@@ -273,8 +273,7 @@ function removeChip(chip: { group: string; key: string }) {
                 variant="rosePale"
                 class="!absolute !right-[11px] !top-[13px] !w-[64px] !h-[29px] !px-0 !py-0 !text-[10.5px] !leading-[16px] !tracking-[0.3px]"
                 @click.stop="confirmZone"
-              >
-                Choisir
+              >{{ t("ChoisirText") }} 
               </BaseButton>
             </div>
 
@@ -321,7 +320,7 @@ function removeChip(chip: { group: string; key: string }) {
                 class="text-center py-4 font-semibold"
                 style="color: #c9a9a0; font-size: 12.8px"
               >
-                Aucun canton trouvé
+                {{ t("Nothing") }}
               </p>
             </div>
           </div>

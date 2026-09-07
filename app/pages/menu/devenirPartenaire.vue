@@ -23,7 +23,7 @@ const { referenceRef, referenceHeight } = useReferenceHeight();
 const { currentLang, t, setLang } = useTranslation();
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any);
 }
 
 // Icônes SVG associées aux statistiques (voir StatItem.icon dans partnershipData.ts)
@@ -238,7 +238,7 @@ const statIconPaths: Record<string, string> = {
 
                 <!-- Légende de la statistique -> caption -->
                 <BaseText size="caption" color="#2e2f30" class="cap-first">
-                  {{ stat.label }}
+                  {{ t(stat.label) }}
                 </BaseText>
               </div>
             </BaseCard>
@@ -397,15 +397,15 @@ const statIconPaths: Record<string, string> = {
           <div class="flex flex-col gap-1">
             <!-- Titre d'offre = titre de "carte" -->
             <BaseTitle size="card" tag="h4" color="#e61171">
-              {{ offer.title }}
+              {{ t(offer.title) }}
             </BaseTitle>
 
             <BaseText size="caption" class="!font-bold" color="#2e2f30">
-              {{ offer.price }}
+              {{ t(offer.price) }}
             </BaseText>
 
             <BaseText size="caption" color="#888888">
-              {{ offer.description }}
+              {{ t(offer.description) }}
             </BaseText>
           </div>
         </BaseCard>
@@ -422,24 +422,24 @@ const statIconPaths: Record<string, string> = {
         style="background: #ffffff; border: 1px solid #ffe4d3"
       >
         <BaseTitle size="section" tag="h3" color="#e61171" class="text-center">
-          {{ publishArticleOffer.title }}
+          {{ t(publishArticleOffer.title) }}
         </BaseTitle>
         <BaseText size="body" color="#2e2f30">
-          {{ publishArticleOffer.description }}
+          {{ t(publishArticleOffer.description) }}
         </BaseText>
         <div class="flex flex-wrap items-center gap-4">
           <div class="flex items-baseline gap-1">
             <BaseText tag="span" size="body" class="!font-bold" color="#e61171">
-              {{ publishArticleOffer.price }}
+              {{ t(publishArticleOffer.price) }}
             </BaseText>
             <BaseText tag="span" size="caption" color="#2e2f30">
-              {{ publishArticleOffer.priceSuffix }}
+              {{ t(publishArticleOffer.priceSuffix) }}
             </BaseText>
           </div>
 <!-- envoi un email  -->
           <div class="flex justify-center w-full">
             <BaseButton variant="pink" type="button" href="mailto:info@lafamily.ch">
-              {{ publishArticleOffer.ctaLabel }}
+              {{ t(publishArticleOffer.ctaLabel) }}
             </BaseButton>
           </div>
         </div>
@@ -464,7 +464,7 @@ const statIconPaths: Record<string, string> = {
           class="absolute -top-3 rounded-full px-3 py-1 !font-bold"
           style="background: #ffffff; border: 1.5px solid #e61171"
         >
-          {{ becomeExpertOffer.badge }}
+          {{ t(becomeExpertOffer.badge) }}
         </BaseText>
 
         <div
@@ -479,10 +479,10 @@ const statIconPaths: Record<string, string> = {
         </div>
 
         <BaseTitle size="section" tag="h3" color="#2e2f30">
-          {{ becomeExpertOffer.title }}
+          {{ t(becomeExpertOffer.title) }}
         </BaseTitle>
         <BaseText size="body" color="#2e2f30" class="max-w-[520px]">
-          {{ becomeExpertOffer.description }}
+          {{ t(becomeExpertOffer.description) }}
         </BaseText>
 
         <div class="flex flex-col gap-2 w-full max-w-[400px]">
@@ -496,21 +496,21 @@ const statIconPaths: Record<string, string> = {
             class="rounded-[10px] px-4 py-2 text-center"
             style="background: #ffd1b5"
           >
-            {{ benefit }}
+            {{ t(benefit) }}
           </BaseText>
         </div>
 
         <div class="flex items-baseline gap-1">
           <BaseText tag="span" size="body"  color="#e61171" class="!font-bold">
-            {{ becomeExpertOffer.price }}
+            {{ t(becomeExpertOffer.price) }}
           </BaseText>
           <BaseText tag="span" size="caption" color="#2e2f30">
-            {{ becomeExpertOffer.priceSuffix }}
+            {{ t(becomeExpertOffer.priceSuffix) }}
           </BaseText>
         </div>
         <!-- envoi un email -->
         <BaseButton variant="pink" type="button" class="" href="mailto:info@lafamily.ch">
-          {{ becomeExpertOffer.ctaLabel }}
+          {{ t(becomeExpertOffer.ctaLabel) }}
         </BaseButton>
       </div>
     </section>
@@ -540,13 +540,7 @@ const statIconPaths: Record<string, string> = {
           </svg>
         </div>
 
-        <!--
-          Titre "Contact" : text-2xl d'origine (24px, statique).
-          On utilise size="TitrePage", qui démarre à 24px sur mobile
-          (identique à l'ancien rendu) et grandit légèrement sur
-          desktop (30px) au lieu de rester figé à 24px partout —
-          cohérent avec le principe "toujours responsive" de la charte.
-        -->
+       
         <BaseTitle size="TitrePage" tag="h2" color="#2e2f30">
           {{ t("devPartnerContactTitle") }}
         </BaseTitle>

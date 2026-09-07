@@ -8,16 +8,16 @@ export interface ArticleCategoryOption {
 
 // ---------- Catégories : les 10 thématiques du blog ----------
 export const articleCategories: ArticleCategoryOption[] = [
-  { key: "grossesse", labelKey: "Grossesse" },
-  { key: "bebe", labelKey: "Bébé" },
-  { key: "petiteEnfance", labelKey: "Petite enfance" },
-  { key: "enfance", labelKey: "Enfance" },
-  { key: "adolescence", labelKey: "Adolescence" },
-  { key: "scolarite", labelKey: "Scolarité" },
-  { key: "parents", labelKey: "Parents" },
-  { key: "vieDeFamille", labelKey: "Vie familiale" },
-  { key: "travail", labelKey: "Travail" },
-  { key: "assurances", labelKey: "Budget et assurance" },
+  { key: "grossesse", labelKey: "catGrossesse" },
+  { key: "bebe", labelKey: "catBebe" },
+  { key: "petiteEnfance", labelKey: "catPetiteEnfance" },
+  { key: "enfance", labelKey: "catEnfance" },
+  { key: "adolescence", labelKey: "catAdolescence" },
+  { key: "scolarite", labelKey: "catScolarite" },
+  { key: "parents", labelKey: "catParents" },
+  { key: "vieDeFamille", labelKey: "catVieDeFamille" },
+  { key: "travail", labelKey: "catTravail" },
+  { key: "assurances", labelKey: "catBudgetAssurance" },
 ];
 
 //contenu de larticle

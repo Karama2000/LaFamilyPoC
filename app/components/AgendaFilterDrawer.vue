@@ -508,11 +508,7 @@ onBeforeUnmount(() => {
 
               <!-- ===== Section Âge : grille de cartes CENTRÉES à sélection multiple ===== -->
 
-              <!--
-                Bordure rose visible seulement si au moins une option de CE groupe est
-                cochée (sectionCount('ages') > 0). "transparent" évite un décalage de
-                taille entre l'état actif/inactif (la bordure existe toujours, juste invisible).
-              -->
+             
               <section
                 class="rounded-[10px] p-4 transition-colors"
                 :style="
@@ -521,18 +517,7 @@ onBeforeUnmount(() => {
                     : 'background:#FFFFFF;border:2px solid transparent;box-shadow:0 4px 14px rgba(230,17,113,0.06)'
                 "
               >
-                <!--
-                  AVANT : <h3 class="text-sm font-bold mb-3 tracking-[0.2px] flex items-center justify-between" style="color:#2e2f30">
-                            <span style="color:#e61171">{{ t("filterAge") }}</span>
-                          </h3>
-                  APRÈS : le h3 devient BaseTitle size="card" (16px mobile /
-                  20px desktop). Le <span> interne n'est PAS touché (portée
-                  de cette passe limitée aux h/p) : il continue de porter sa
-                  propre couleur rose et reste le texte réellement visible.
-                  La couleur "#2e2f30" du h3 d'origine est gardée en fallback
-                  sur BaseTitle, sans effet visuel puisque le span la
-                  surcharge déjà pour son propre texte.
-                -->
+               
                 <BaseTitle
                   size="card"
                   tag="h3"
@@ -543,7 +528,7 @@ onBeforeUnmount(() => {
                 </BaseTitle>
                 <div class="flex flex-wrap justify-center gap-1.5">
                 
-                  <!-- ici -->
+                  
                   <BaseButton
                     v-for="age in ageGroups"
                     :key="age.key"
@@ -575,11 +560,7 @@ onBeforeUnmount(() => {
               </section>
 
               <!-- ===== Section Activités : pilules à sélection multiple ===== -->
-              <!--
-                Bordure rose visible seulement si au moins une option de CE groupe est
-                cochée (sectionCount('ages') > 0). "transparent" évite un décalage de
-                taille entre l'état actif/inactif (la bordure existe toujours, juste invisible).
-              -->
+             
               <section
                 class="rounded-[10px] p-4 transition-colors"
                 :style="
@@ -588,7 +569,7 @@ onBeforeUnmount(() => {
                     : 'background:#FFFFFF;border:2px solid transparent;box-shadow:0 4px 14px rgba(230,17,113,0.06)'
                 "
               >
-                <!-- Même remplacement que "filterAge" ci-dessus : h3 -> BaseTitle, span interne inchangé. -->
+                
                 <BaseTitle
                   size="card"
                   tag="h3"
@@ -605,7 +586,7 @@ onBeforeUnmount(() => {
                     variant="filter"
                     :selected="isChecked('activites', item.key)"
                     @click="emit('toggle', 'activites', item.key)"
-                    class="w-[200px] h-[44px] !px-3"
+                    class="w-[230px] h-[44px] !px-3"
                   >
                     <MenuIcon
                       :name="item.icon + (isChecked('activites', item.key) ? '-blanc' : '')"
@@ -618,11 +599,7 @@ onBeforeUnmount(() => {
               </section>
 
               <!-- ===== Section Camps avec logement : pilules à sélection multiple ===== -->
-              <!--
-              Bordure rose visible seulement si au moins une option de CE groupe est
-              cochée (sectionCount('ages') > 0). "transparent" évite un décalage de
-              taille entre l'état actif/inactif (la bordure existe toujours, juste invisible).
-            -->
+             
               <section
                 class="rounded-[10px] p-4 transition-colors"
                 :style="
@@ -631,7 +608,7 @@ onBeforeUnmount(() => {
                     : 'background:#FFFFFF;border:2px solid transparent;box-shadow:0 4px 14px rgba(230,17,113,0.06)'
                 "
               >
-                <!-- Même remplacement que "filterAge" ci-dessus : h3 -> BaseTitle, span interne inchangé. -->
+              
                 <BaseTitle
                   size="card"
                   tag="h3"
@@ -647,7 +624,7 @@ onBeforeUnmount(() => {
                     variant="filter"
                     :selected="isChecked('camps', sub.key)"
                     @click="emit('toggle', 'camps', sub.key)"
-                    class="w-[110px] h-[44px] px-3"
+                    class="w-[150px] h-[44px] px-3"
                   >
                     <MenuIcon
                       :name="campIconName(sub.key, isChecked('camps', sub.key))"
@@ -660,11 +637,7 @@ onBeforeUnmount(() => {
               </section>
 
               <!-- ===== Section Camps de jour : pilules à sélection multiple ===== -->
-              <!--
-                Bordure rose visible seulement si au moins une option de CE groupe est
-                cochée (sectionCount('ages') > 0). "transparent" évite un décalage de
-                taille entre l'état actif/inactif (la bordure existe toujours, juste invisible).
-              -->
+             
               <section
                 class="rounded-[10px] p-4 transition-colors"
                 :style="
@@ -689,7 +662,7 @@ onBeforeUnmount(() => {
                     variant="filter"
                     :selected="isChecked('campsJour', sub.key)"
                     @click="emit('toggle', 'campsJour', sub.key)"
-                    class="w-[110px] h-[44px] px-3"
+                    class="w-[150px] h-[44px] px-3"
                   >
                     <MenuIcon
                       :name="campIconName(sub.key, isChecked('campsJour', sub.key))"
@@ -702,11 +675,7 @@ onBeforeUnmount(() => {
               </section>
 
               <!-- ===== Section Cours : pilules à sélection multiple ===== -->
-              <!--
-                Bordure rose visible seulement si au moins une option de CE groupe est
-                cochée (sectionCount('ages') > 0). "transparent" évite un décalage de
-                taille entre l'état actif/inactif (la bordure existe toujours, juste invisible).
-              -->
+             
               <section
                 class="rounded-[10px] p-4 transition-colors"
                 :style="
@@ -715,7 +684,7 @@ onBeforeUnmount(() => {
                     : 'background:#FFFFFF;border:2px solid transparent;box-shadow:0 4px 14px rgba(230,17,113,0.06)'
                 "
               >
-                <!-- Même remplacement que "filterAge" ci-dessus : h3 -> BaseTitle, span interne inchangé. -->
+               
                 <BaseTitle
                   size="card"
                   tag="h3"
@@ -731,7 +700,7 @@ onBeforeUnmount(() => {
                     variant="filter"
                     :selected="isChecked('cours', item.key)"
                     @click="emit('toggle', 'cours', item.key)"
-                    class="w-[190px] h-[44px] px-3"
+                    class="w-[200px] h-[44px] px-3"
                   >
                     <MenuIcon
                       :name="item.icon + (isChecked('cours', item.key) ? '-blanc' : '')"

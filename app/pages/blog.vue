@@ -16,7 +16,7 @@ const { referenceRef, referenceHeight } = useReferenceHeight();
 const { currentLang, t, setLang } = useTranslation();
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any);
 }
 
 // ----------------------------------------------------------------

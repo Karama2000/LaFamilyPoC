@@ -4,19 +4,7 @@
 <!-- (Activités / Vacances enfants / Cours). Reçoit ?categorie=...  -->
 <!-- et ?sousCategorie=... (voir menuLinkTarget dans menuData.ts)  -->
 <!--                                                                -->
-<!-- MODIFICATIONS (cette passe) :                                  -->
-<!-- 1. Desktop aligné sur pages/agenda.vue : barre de recherche    -->
-<!--    sur fond BLANC qui chevauche le hero (-mt-7/-mt-8), SANS    -->
-<!--    bouton "Filtres" (cette page n'a pas de tiroir de filtres,  -->
-<!--    elle est déjà pré-filtrée par catégorie/sous-catégorie      -->
-<!--    depuis le menu — un bouton "Filtres" n'aurait rien à ouvrir).-->
-<!-- 2. Ajout du compteur "X résultat(s) trouvé(s)" au-dessus de    -->
-<!--    la grille, comme sur pages/agenda.vue.                      -->
-<!-- 3. Grille des résultats alignée sur pages/agenda.vue           -->
-<!--    (sm:grid-cols-2 md:grid-cols-3 au lieu de md:grid-cols-2).  -->
-<!-- 4. Fond de page corrigé (#ffede3 -> #fff8f4, comme partout     -->
-<!--    ailleurs dans l'app).                                       -->
-<!-- 5. MOBILE : STRICTEMENT INCHANGÉ (même bloc, même classes).    -->
+
 <!-- ============================================================ -->
 <script setup lang="ts">
 import { agendaEventsFR } from "~/data/agendaData";
@@ -52,37 +40,50 @@ const sousCategorieParam = computed(() =>
 );
 
 const pageTitle = computed(() => {
-  if (categorieParam.value === "activite") return t("navActivites");
+  if (categorieParam.value === "activite") {
+    const key = activitesItems.find(
+      (i) => i.key === sousCategorieParam.value,
+    )?.key;
+    return key ? t(key) : t("navActivites");
+  }
   if (
     categorieParam.value === "campLogement" ||
     categorieParam.value === "campJour"
   ) {
-    return t("navVacances");
+    const itemKey =
+      categorieParam.value === "campLogement" ? "vacCamps" : "vacCampsDuJour";
+    return t(itemKey);
   }
-  if (categorieParam.value === "cours") return t("navCours");
+  if (categorieParam.value === "cours") {
+    const key = coursItems.find(
+      (i) => i.key === sousCategorieParam.value,
+    )?.key;
+    return key ? t(key) : t("navCours");
+  }
   return t("agendaTitle");
 });
 
 const pageDescription = computed(() => {
   if (categorieParam.value === "activite") {
-    return (
-      activitesItems.find((i) => i.key === sousCategorieParam.value)
-        ?.descriptionKey ?? ""
-    );
+    const key = activitesItems.find(
+      (i) => i.key === sousCategorieParam.value,
+    )?.descriptionKey;
+    return key ? t(key) : "";
   }
   if (
     categorieParam.value === "campLogement" ||
     categorieParam.value === "campJour"
   ) {
-    const key =
+    const itemKey =
       categorieParam.value === "campLogement" ? "vacCamps" : "vacCampsDuJour";
-    return vacancesItems.find((i) => i.key === key)?.descriptionKey ?? "";
+    const key = vacancesItems.find((i) => i.key === itemKey)?.descriptionKey;
+    return key ? t(key) : "";
   }
   if (categorieParam.value === "cours") {
-    return (
-      coursItems.find((i) => i.key === sousCategorieParam.value)
-        ?.descriptionKey ?? ""
-    );
+    const key = coursItems.find(
+      (i) => i.key === sousCategorieParam.value,
+    )?.descriptionKey;
+    return key ? t(key) : "";
   }
   return "";
 });
@@ -159,7 +160,7 @@ const filteredEvents = computed(() => {
             {{ pageTitle }}
           </BaseTitle>
           <BaseSubtitle size="description" tag="p" color="#FFCEE4">
-            {{ pageDescription }}
+            {{ pageDescription}}
           </BaseSubtitle>
         </div>
 

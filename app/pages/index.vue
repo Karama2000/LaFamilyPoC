@@ -36,7 +36,7 @@ const nouveautes = computed<ContentItem[]>(() => {
 // ----------------------------------------------------------------
 // 2. COMPOSABLES & ÉTAT
 // ----------------------------------------------------------------
-const { currentLang, isTranslating, t, setLang, translateItems } =
+const { currentLang,  t, setLang,  } =
   useTranslation();
 
 // ----------------------------------------------------------------

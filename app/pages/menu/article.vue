@@ -29,7 +29,7 @@ const { currentLang, t, setLang } = useTranslation();
 const route = useRoute();
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any);
 }
 
 

@@ -7,14 +7,6 @@
   Fonctionne en v-model (modelValue au format 'YYYY-MM-DD' ou '' si aucune
   date choisie).
 
-  MODIFICATIONS :
-  1. Plus aucune présélection par défaut à l'ouverture.
-  2. Un jour cliqué dans la grille devient une sélection PROVISOIRE (draftDate).
-  3. La sélection est émise au parent uniquement au clic sur "Valider".
-  4. highlightDate permet d'afficher une date repère.
-  5. "Aujourd'hui" sélectionne aujourd'hui en provisoire.
-  6. Le bouton déclencheur devient ROSE lorsque le calendrier est ouvert,
-     sans modifier la date sélectionnée.
 -->
 
 <script setup lang="ts">
@@ -103,22 +95,30 @@ const viewMonth = ref((selectedDate.value ?? today).getMonth());
 // NOMS DES MOIS / JOURS
 // ============================================================
 
-const MONTH_NAMES = [
-  "janvier",
-  "février",
-  "mars",
-  "avril",
-  "mai",
-  "juin",
-  "juillet",
-  "août",
-  "septembre",
-  "octobre",
-  "novembre",
-  "décembre",
+const MONTH_KEYS = [
+  "agendaJanuary",
+  "agendaFebruary",
+  "agendaMarch",
+  "agendaApril",
+  "agendaMay",
+  "agendaJune",
+  "agendaJuly",
+  "agendaAugust",
+  "agendaSeptember",
+  "agendaOctober",
+  "agendaNovember",
+  "agendaDecember",
 ];
 
-const WEEKDAYS = ["lu", "ma", "me", "je", "ve", "sa", "di"];
+const WEEKDAY_KEYS = [
+  "agendaMonday",
+  "agendaTuesday",
+  "agendaWednesday",
+  "agendaThursday",
+  "agendaFriday",
+  "agendaSaturday",
+  "agendaSunday",
+];
 
 // ============================================================
 // LABEL DU BOUTON
@@ -285,7 +285,6 @@ onUnmounted(() => {
     <!-- ici  -->
     <BaseButton
       variant="calendar"
-      
       :open="open"
       :full-width="true"
       @click="toggle"
@@ -327,7 +326,7 @@ onUnmounted(() => {
 
     <div
       v-if="open"
-      class="absolute z-50 mt-2 w-[320px] max-w-[90vw] rounded-[5px] bg-white shadow-[0_13px_30px_rgba(0,0,0,0.15)] p-4 "
+      class="absolute z-50 mt-2 w-[320px] max-w-[90vw] rounded-[5px] bg-white shadow-[0_13px_30px_rgba(0,0,0,0.15)] p-4"
     >
       <!-- ===============================================
       HEADER
@@ -339,7 +338,7 @@ onUnmounted(() => {
         <button
           type="button"
           @click="prevMonth"
-          aria-label="Mois précédent"
+          :aria-label="t('agendaPreviousMonth')"
           class="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-[#FFF0F5]"
         >
           <svg
@@ -359,7 +358,7 @@ onUnmounted(() => {
         <!-- Mois / année -->
 
         <span class="font-bold text-sm capitalize" style="color: #2e2f30">
-          {{ MONTH_NAMES[viewMonth] }}
+          {{ t(MONTH_KEYS[viewMonth]) }}
           {{ viewYear }}
         </span>
 
@@ -368,7 +367,7 @@ onUnmounted(() => {
         <button
           type="button"
           @click="nextMonth"
-          aria-label="Mois suivant"
+          :aria-label="t('agendaNextMonth')"
           class="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-[#FFF0F5]"
         >
           <svg
@@ -392,12 +391,12 @@ onUnmounted(() => {
 
       <div class="grid grid-cols-7 mb-1">
         <span
-          v-for="wd in WEEKDAYS"
+          v-for="wd in WEEKDAY_KEYS"
           :key="wd"
           class="text-center text-[11px] font-bold uppercase"
           style="color: #b8b8b8"
         >
-          {{ wd }}
+          {{ t(wd) }}
         </span>
       </div>
 

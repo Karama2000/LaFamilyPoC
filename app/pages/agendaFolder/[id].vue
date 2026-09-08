@@ -22,14 +22,16 @@ const route = useRoute();
 const router = useRouter();
 
 const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>("/api/agenda", {
-  default: () => agendaEventsFR,
+  query: { lang: currentLang },
+  key: computed(() => `agenda-detail-${currentLang.value}`),
+  default: () => (currentLang.value === "fr" ? agendaEventsFR : []),
 });
 
 /**
  * Change la langue courante de l'application
  */
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as "fr" | "en" | "de" | "it");
 }
 
 // ----------------------------------------------------------------
@@ -37,9 +39,7 @@ function onLangChange(lang: string) {
 // ----------------------------------------------------------------
 
 /** Événement correspondant à l'id de la route (undefined si introuvable) */
-const agendaEvents = computed(() =>
-  apiAgendaEvents.value?.length ? apiAgendaEvents.value : agendaEventsFR,
-);
+const agendaEvents = computed(() => apiAgendaEvents.value ?? []);
 const event = computed(() =>
   agendaEvents.value.find((ev) => ev.id === route.params.id),
 );

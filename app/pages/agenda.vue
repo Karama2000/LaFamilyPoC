@@ -34,11 +34,11 @@ const {
   pending: agendaPending,
   error: agendaError,
 } = useFetch<AgendaEvent[]>("/api/agenda", {
-  default: () => agendaEventsFR,
+  query: { lang: currentLang },
+  key: computed(() => `agenda-${currentLang.value}`),
+  default: () => (currentLang.value === "fr" ? agendaEventsFR : []),
 });
-const agendaEvents = computed(() =>
-  apiAgendaEvents.value?.length ? apiAgendaEvents.value : agendaEventsFR,
-);
+const agendaEvents = computed(() => apiAgendaEvents.value ?? []);
 
 // ----------------------------------------------------------------
 // 3. FONCTIONS NAVIGATION & LANGUE

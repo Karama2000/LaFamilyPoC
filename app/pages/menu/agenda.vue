@@ -23,7 +23,12 @@ function onLangChange(lang: string) {
 }
 
 // Utilise exactement la même source de données que l’agenda principal.
+// Comme pour agenda.vue : il faut transmettre `lang` et une `key` par
+// langue, sinon cette vue reste bloquée en français quel que soit le
+// drapeau cliqué dans le header (voir normalizeLanguage() côté serveur).
 const { data: apiAgendaEvents } = useFetch<AgendaEvent[]>("/api/agenda", {
+  query: { lang: currentLang },
+  key: computed(() => `agenda-${currentLang.value}`),
   default: () => agendaEventsFR,
 });
 const agendaEvents = computed(() =>

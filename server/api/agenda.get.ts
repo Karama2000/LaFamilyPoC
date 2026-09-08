@@ -64,7 +64,33 @@ type RawRow = Record<string, unknown>;
 const DEFAULT_IMAGE = "/images/famille.jpeg";
 const CACHE_DURATION_MS = 10 * 60 * 1000;
 
-let cache: { data: NormalizedAgendaEvent[]; fetchedAt: number } | null = null;
+type AgendaLanguage = "fr" | "de" | "it" | "en";
+
+const FIELD_NAMES = {
+  title: ["Titre", "titre", "Title", "Titel", "Titolo"],
+  address: ["Adresse", "address", "Anschrift", "Indirizzo", "Address"],
+  city: ["Ville", "city", "Ort", "Città", "City"],
+  canton: ["Canton", "canton", "cantonKey", "Kanton", "Cantone"],
+  dateStart: ["Date début", "Date debut", "dateStart", "Date de début", "Startdatum", "Data d'inizio", "Data di inizio", "Start date"],
+  dateEnd: ["Date fin", "dateEnd", "Date de fin", "Enddatum", "Data di fine", "End date"],
+  date: ["Date", "date", "Datum", "Data"],
+  category: ["Catégorie détaillée", "Categorie detaillee", "Catégorie", "Categorie", "categorie", "categorieLabel", "categoryLabel", "Category", "Categoria", "Kategorie"],
+  image: ["Photo", "photo", "image", "Image", "Foto"],
+};
+
+// Chaque onglet de langue doit avoir son propre cache : sinon une réponse FR
+// peut être réutilisée après un clic sur DE, IT ou EN.
+const cache = new Map<
+  AgendaLanguage,
+  { data: NormalizedAgendaEvent[]; fetchedAt: number }
+>();
+
+function normalizeLanguage(value: unknown): AgendaLanguage {
+  const language = String(value ?? "fr").trim().toLowerCase();
+  return language === "de" || language === "it" || language === "en"
+    ? language
+    : "fr";
+}
 
 function normalizeKey(input: string): string {
   return input
@@ -555,10 +581,12 @@ function categoryFrom(valueToParse: string): string {
   return "activite";
 }
 
-/** Interprète une case du Sheet comme un booléen (oui/yes/true/1/x). */
+/** Interprète une case du Sheet comme un booléen dans les quatre langues. */
 function truthyFlag(value: string): boolean {
   const normalized = normalizeKey(value);
-  return ["oui", "yes", "true", "1", "x", "vrai"].includes(normalized);
+  return ["oui", "yes", "ja", "si", "true", "1", "x", "vrai"].includes(
+    normalized,
+  );
 }
 
 /**
@@ -576,6 +604,9 @@ function misEnAvantFromRow(row: RawRow): boolean {
     "A la une",
     "Vedette",
     "Featured",
+    "In the spotlight",
+    "In aller Munde",
+    "In primo piano",
   );
   return truthyFlag(value);
 }
@@ -647,6 +678,9 @@ const INHERITED_FIELDS = [
   "A la une",
   "Vedette",
   "Featured",
+  "In the spotlight",
+  "In aller Munde",
+  "In primo piano",
 ];
 
 /**
@@ -720,6 +754,7 @@ function formatDisplayDate(
   startText: string,
   endText: string,
   fallback: string,
+  lang: AgendaLanguage = "fr",
 ): string {
   const start = parseDate(startText);
   const end = parseDate(endText);
@@ -727,7 +762,7 @@ function formatDisplayDate(
     const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!match) return value;
     const date = new Date(`${value}T12:00:00`);
-    return new Intl.DateTimeFormat("fr-CH", {
+    return new Intl.DateTimeFormat(`${lang}-CH`, {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -735,19 +770,20 @@ function formatDisplayDate(
   };
   if (!startText && !endText) return fallback;
   if (!endText || start === end) return toFrench(start || fallback);
-  return `Du ${toFrench(start)} au ${toFrench(end)}`;
+  const prefix = lang === "fr" ? "Du" : lang === "de" ? "Vom" : lang === "it" ? "Dal" : "From";
+  const separator = lang === "fr" ? " au " : lang === "de" ? " bis " : lang === "it" ? " al " : " to ";
+  return `${prefix} ${toFrench(start)}${separator}${toFrench(end)}`;
 }
 
 /** Date affichée pour une ligne donnée (même règle que dans normalizeRow). */
-function dateFromRow(row: RawRow): string {
-  const startText =
-    findValue(row, "Date début", "Date debut", "dateStart") ||
-    findValue(row, "Date", "date");
-  const endText = findValue(row, "Date fin", "dateEnd");
+function dateFromRow(row: RawRow, lang: AgendaLanguage = "fr"): string {
+  const startText = findValue(row, ...FIELD_NAMES.dateStart) || findValue(row, ...FIELD_NAMES.date);
+  const endText = findValue(row, ...FIELD_NAMES.dateEnd);
   return formatDisplayDate(
     startText,
     endText,
-    findValue(row, "Date", "date") || startText,
+    findValue(row, ...FIELD_NAMES.date) || startText,
+    lang,
   );
 }
 
@@ -776,7 +812,7 @@ function groupKeyFromRow(row: RawRow, index: number): string {
     const stripped = rowKey.replace(/-\d+$/, "");
     if (stripped) return stripped;
   }
-  const titre = normalizeKey(findValue(row, "Titre", "titre", "Title"));
+  const titre = normalizeKey(findValue(row, ...FIELD_NAMES.title));
   if (!titre) return `__no-title-${index}`;
   const sousCategorie = normalizeKey(
     findValue(row, "Sous-catégorie", "Sous categorie", "sousCategorie"),
@@ -815,11 +851,11 @@ function pickPrimaryRow(group: RawRow[]): RawRow {
   const withIdAndTitle = group.find(
     (row) =>
       findValue(row, "Num", "id", "ID") &&
-      findValue(row, "Titre", "titre", "Title"),
+      findValue(row, ...FIELD_NAMES.title),
   );
   if (withIdAndTitle) return withIdAndTitle;
   const withTitle = group.find((row) =>
-    findValue(row, "Titre", "titre", "Title"),
+    findValue(row, ...FIELD_NAMES.title),
   );
   if (withTitle) return withTitle;
   return group.find((row) => findValue(row, "Num", "id", "ID")) ?? group[0]!;
@@ -864,6 +900,7 @@ function fillConstantFieldsFromGroup(
 function buildAutresOccurrences(
   primaryRow: RawRow,
   otherRows: RawRow[],
+  lang: AgendaLanguage = "fr",
 ): Pick<
   NormalizedAgendaEvent,
   "autresDates" | "autresAdresses" | "autresLieuxDates"
@@ -871,12 +908,12 @@ function buildAutresOccurrences(
   if (!otherRows.length) return {};
 
   const primaryLieu = lieuFromRow(primaryRow);
-  const primaryDate = dateFromRow(primaryRow);
+  const primaryDate = dateFromRow(primaryRow, lang);
 
   const occurrences = otherRows
     .map((row) => ({
       lieu: lieuFromRow(row) || primaryLieu,
-      date: dateFromRow(row),
+      date: dateFromRow(row, lang),
     }))
     .filter((occ) => occ.date || occ.lieu);
 
@@ -987,42 +1024,31 @@ function mergeManualAutres(
 function normalizeRow(
   row: RawRow,
   index: number,
+  lang: AgendaLanguage,
 ): Omit<NormalizedAgendaEvent, "image"> & { imageUrl: string } {
-  const startText =
-    findValue(row, "Date début", "Date debut", "dateStart") ||
-    findValue(row, "Date", "date");
-  const endText = findValue(row, "Date fin", "dateEnd");
-  const address = findValue(row, "Adresse", "address");
-  const city = findValue(row, "Ville", "city");
-  const canton = findValue(row, "Canton", "canton", "cantonKey");
+  const startText = findValue(row, ...FIELD_NAMES.dateStart) || findValue(row, ...FIELD_NAMES.date);
+  const endText = findValue(row, ...FIELD_NAMES.dateEnd);
+  const address = findValue(row, ...FIELD_NAMES.address);
+  const city = findValue(row, ...FIELD_NAMES.city);
+  const canton = findValue(row, ...FIELD_NAMES.canton);
   const lieu =
     [address, city].filter(Boolean).join(", ") ||
-    findValue(row, "lieu", "Lieu");
-  const categorieLabelRaw = findValue(
-    row,
-    "Catégorie détaillée",
-    "Categorie detaillee",
-    "Catégorie",
-    "Categorie",
-    "categorie",
-    "categorieLabel",
-    "categoryLabel",
-    "Category",
-    "Categoria",
-  );
+    findValue(row, "lieu", "Lieu", "Ort", "Luogo", "Location");
+  const categorieLabelRaw = findValue(row, ...FIELD_NAMES.category);
   const categorieRow = categoryFrom(categorieLabelRaw);
   const age = singleAgeFromRow(row);
   const ageMin = numericAgeFromRow(row, AGE_MIN_KEYS);
   const ageMax = numericAgeFromRow(row, AGE_MAX_KEYS);
   return {
     id: findValue(row, "Num", "id", "ID") || `auto-${index}-${Date.now()}`,
-    titre: findValue(row, "Titre", "titre", "Title") || "Événement sans titre",
+    titre: findValue(row, ...FIELD_NAMES.title) || "Événement sans titre",
     lieu,
     cantonKey: cantonFrom(canton),
     date: formatDisplayDate(
       startText,
       endText,
-      findValue(row, "Date", "date") || startText,
+      findValue(row, ...FIELD_NAMES.date) || startText,
+      lang,
     ),
     dateStart: parseDate(startText),
     dateEnd: parseDate(endText),
@@ -1053,15 +1079,19 @@ function normalizeRow(
     ageMax,
     ageLabel: ageLabelFromRow(row),
     partnerId: Number(findValue(row, "partnerId", "_partnerId")) || undefined,
-    horaires: findValue(row, "Heure", "horaires", "Horaire"),
-    tarif: findValue(row, "Prix", "prix", "tarif", "Price"),
-    description: findValue(row, "Description", "description"),
+    horaires: findValue(row, "Heure", "horaires", "Horaire", "Uhrzeit", "Orario", "Time"),
+    tarif: findValue(row, "Prix", "prix", "tarif", "Price", "Preis", "Prezzo"),
+    description: findValue(row, "Description", "description", "Beschreibung", "Descrizione"),
     infoComplementaire: findValue(
       row,
       "Information complémentaire",
       "Information complementaire",
       "infoComplementaire",
       "Infos",
+      "Zusatzinformation",
+      "Zusätzliche Informationen",
+      "Informazioni aggiuntive",
+      "Additional information",
     ),
     contactTel: findValue(
       row,
@@ -1069,6 +1099,9 @@ function normalizeRow(
       "Telephone",
       "contactTel",
       "Téléphone de contact",
+      "Telefon",
+      "Telefono",
+      "Phone",
     ),
     contactEmail: findValue(
       row,
@@ -1076,6 +1109,7 @@ function normalizeRow(
       "Email",
       "contactEmail",
       "Adresse e-mail",
+      "E-Mail",
     ),
     siteUrl: findValue(
       row,
@@ -1083,8 +1117,12 @@ function normalizeRow(
       "Lien de evenement",
       "siteUrl",
       "url",
+      "Website",
+      "Webseite",
+      "Sito",
+      "Site",
     ),
-    imageUrl: findValue(row, "Photo", "photo", "image", "Image"),
+    imageUrl: findValue(row, ...FIELD_NAMES.image),
     seoDescription: findValue(row, "Description SEO", "seoDescription"),
     seoKeywords: findValue(
       row,
@@ -1096,12 +1134,17 @@ function normalizeRow(
   };
 }
 
-export default defineEventHandler(async () => {
-  if (cache && Date.now() - cache.fetchedAt < CACHE_DURATION_MS)
-    return cache.data;
+export default defineEventHandler(async (event) => {
+  const query = getQuery(event);
+  const lang = normalizeLanguage(query.lang);
+  const cached = cache.get(lang);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_DURATION_MS)
+    return cached.data;
   try {
     const config = useRuntimeConfig();
-    const rawResponse = await $fetch<unknown>(config.n8nAgendaWebhookUrl);
+    const rawResponse = await $fetch<unknown>(config.n8nAgendaWebhookUrl, {
+      query: { lang },
+    });
     const validRows = rowsFromWebhookResponse(rawResponse);
 
     const repeatedRows = inheritRepeatedEventFields(validRows);
@@ -1115,10 +1158,10 @@ export default defineEventHandler(async () => {
         const primaryRow = pickPrimaryRow(group);
         const filledPrimaryRow = fillConstantFieldsFromGroup(group, primaryRow);
         const otherRows = group.filter((row) => row !== primaryRow);
-        const normalized = normalizeRow(filledPrimaryRow, index);
+        const normalized = normalizeRow(filledPrimaryRow, index, lang);
         const autresOccurrences = mergeManualAutres(
           filledPrimaryRow,
-          buildAutresOccurrences(primaryRow, otherRows),
+          buildAutresOccurrences(primaryRow, otherRows, lang),
         );
         const autresDatesISO = buildAutresDatesISO(otherRows);
         const imageUrl = normalized.imageUrl;
@@ -1184,10 +1227,10 @@ export default defineEventHandler(async () => {
         : { ...event, id: `${baseId}-${occurrence + 1}` };
     });
 
-    cache = { data: uniqueProcessed, fetchedAt: Date.now() };
+    cache.set(lang, { data: uniqueProcessed, fetchedAt: Date.now() });
     return uniqueProcessed;
   } catch (error) {
     console.error("[api/agenda] Erreur:", error);
-    return cache?.data ?? [];
+    return cached?.data ?? [];
   }
 });

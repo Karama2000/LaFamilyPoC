@@ -40,7 +40,7 @@ const repeatCount = computed(
 );
 
 const repeatLabel = computed(() =>
-  repeatCount.value === 1 ? "autre occurrence" : "autres occurrences",
+  repeatCount.value === 1 ? props.t("agendaAutreOccurrence") : props.t("agendaAutresOccurrences"),
 );
 
 function handleImageError(event: Event) {
@@ -69,7 +69,7 @@ function handleImageError(event: Event) {
           class="absolute top-3 left-3 z-10 rounded-full px-3 py-1 text-xs font-bold"
           style="background: #ffffff; color: #e61171"
         >
-          {{ t(categoryLabel[event.categorie]) }}
+          {{ badgeLabel }}
         </div>
       </div>
     </template>

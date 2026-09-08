@@ -27,7 +27,8 @@ const { currentLang,  t, setLang,  } =
   useTranslation();
 
 const { data: apiArticles } = await useFetch<Article[]>("/api/articles", {
-  query: { lang: currentLang },
+  query: computed(() => ({ lang: currentLang.value })),
+    watch: [currentLang],
   key: computed(() => `home-articles-${currentLang.value}`),
 });
 
@@ -49,8 +50,11 @@ const nouveautes = computed<ContentItem[]>(() => {
 // ----------------------------------------------------------------
 // Même route que la page Agenda : /api/agenda interroge le webhook n8n
 // (Google Sheet), normalise les lignes et renvoie tous les événements.
-const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>("/api/agenda", {
-  query: { lang: currentLang },
+const { data: apiAgendaEvents, refresh: refreshAgenda } = await useFetch<AgendaEvent[]>("/api/agenda", {
+  query: computed(() => ({ lang: currentLang.value })),
+  // Le changement est piloté explicitement dans onLangChange afin d'éviter
+  // que useFetch réutilise la réponse FR pour une nouvelle langue.
+  watch: false,
   key: computed(() => `home-agenda-${currentLang.value}`),
   default: () => [],
 });
@@ -80,8 +84,10 @@ const selections = computed<AgendaEvent[]>(() =>
  * Change la langue et met à jour le cache avec les données FR
  * @param lang - Code de la langue cible
  */
-function onLangChange(lang: string) {
+async function onLangChange(lang: string) {
   setLang(lang as any);
+  await nextTick();
+  await refreshAgenda({ dedupe: "cancel" });
 }
 
 

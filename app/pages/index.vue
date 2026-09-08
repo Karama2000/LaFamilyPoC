@@ -20,7 +20,16 @@ interface Article {
   image: string;
 }
 
-const { data: apiArticles } = await useFetch<Article[]>("/api/articles");
+// ----------------------------------------------------------------
+// 2. COMPOSABLES & ÉTAT
+// ----------------------------------------------------------------
+const { currentLang,  t, setLang,  } =
+  useTranslation();
+
+const { data: apiArticles } = await useFetch<Article[]>("/api/articles", {
+  query: { lang: currentLang },
+  key: computed(() => `home-articles-${currentLang.value}`),
+});
 
 // Transforme les vrais articles au format attendu par BlogSection,
 // avec repli sur le mock si l'API ne renvoie rien.
@@ -33,21 +42,18 @@ const nouveautes = computed<ContentItem[]>(() => {
   }));
 });
 
-// ----------------------------------------------------------------
-// 2. COMPOSABLES & ÉTAT
-// ----------------------------------------------------------------
-const { currentLang,  t, setLang,  } =
-  useTranslation();
+
 
 // ----------------------------------------------------------------
 // 3. SÉLECTION (carrousel "Notre sélection") — DONNÉES BACK
 // ----------------------------------------------------------------
 // Même route que la page Agenda : /api/agenda interroge le webhook n8n
 // (Google Sheet), normalise les lignes et renvoie tous les événements.
-const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>(
-  "/api/agenda",
-  { default: () => [] },
-);
+const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>("/api/agenda", {
+  query: { lang: currentLang },
+  key: computed(() => `home-agenda-${currentLang.value}`),
+  default: () => [],
+});
 
 /** Nombre maximum d’items affichés dans le carrousel "Sélection de la semaine" */
 const MAX_SELECTIONS = 6;
@@ -78,50 +84,9 @@ function onLangChange(lang: string) {
   setLang(lang as any);
 }
 
-// ----------------------------------------------------------------
-// 5. TRADUCTION DU CONTENU DYNAMIQUE (sélections + nouveautés)
-// ----------------------------------------------------------------
-// Contrairement aux textes statiques (t()), "selections" et "nouveautes"
-// viennent du back (Google Sheet via n8n) : leur contenu doit être
-// traduit à la volée via translateItems, puis mis en cache par item.
-// On garde des refs séparées affichées dans le template plutôt que le
-// FR brut, pour que EN/DE/IT s'affichent bien sur le carrousel et le blog.
-const translatedSelections = ref<AgendaEvent[]>([]);
-const translatedNouveautes = ref<ContentItem[]>([]);
 
-watch(
-  [selections, currentLang],
-  async ([items, lang]) => {
-    translatedSelections.value =
-      lang === "fr"
-        ? items
-        : await translateItems(lang as any, "agenda-selection", items, [
-            "titre",
-            "description",
-          ]);
-  },
-  { immediate: true },
-);
 
-watch(
-  [nouveautes, currentLang],
-  async ([items, lang]) => {
-    translatedNouveautes.value =
-      lang === "fr"
-        ? items
-        : await translateItems(
-            lang as any,
-            "article-nouveaute",
-            items,
-            ["titre", "description"],
-            // les articles issus de l'API ont un id ; le mock de repli
-            // (nouveautesFR) n'en a pas -> on retombe sur le titre FR
-            // comme clé de cache pour ne jamais planter.
-            "titre" as any,
-          );
-  },
-  { immediate: true },
-);
+
 </script>
 
 <!-- ============================================================ -->

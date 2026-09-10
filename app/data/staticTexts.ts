@@ -350,4 +350,7 @@ agendaNextMonth: "Mois suivant",
 
 
 lePlusChoisi: "Le plus choisi",
+agendaAutreOccurrence: "Autre occurrence",
+agendaAutresOccurrences: "Autres occurrences"
+
 };

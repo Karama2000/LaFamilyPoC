@@ -146,7 +146,7 @@ export const staticTextsIt: Record<string, string> = {
   agendaAutresAdresses: "Altri indirizzi",
   agendaAutresLieuxDates: "Ci trovi anche a",
   agendaLe: "il",
-  agendaSiteOrganisateur: "Maggiori informazioni sul sito dell'organizzatore",
+  agendaSiteOrganisateur: "Sito dell'organizzatore",
   agendaDateValidate: "Conferma",
 
   filterRegion: "Regione",
@@ -332,4 +332,8 @@ agendaPreviousMonth: "Mese precedente",
 agendaNextMonth: "Mese successivo",
 
 lePlusChoisi: "Il più scelto",
+
+agendaAutreOccurrence: "Altra occorrenza",
+agendaAutresOccurrences: "Altre occorrenze"
+
 };

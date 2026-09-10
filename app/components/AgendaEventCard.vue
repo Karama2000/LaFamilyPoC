@@ -31,6 +31,10 @@ const badgeLabel = computed(() => {
   return props.t(categoryLabel[props.event.categorie]);
 });
 
+// Intervalle d'âge déjà calculé par le back (ex: "6 - 11 ans", "Tout public") :
+// un seul badge, affiché tel quel, plutôt qu'un badge par tranche d'âge.
+const ageBadgeLabel = computed(() => props.event.ageLabel?.trim() || "");
+
 // Le back regroupe les lignes qui partagent le même titre.
 const repeatCount = computed(
   () =>
@@ -64,12 +68,21 @@ function handleImageError(event: Event) {
           @error="handleImageError"
         />
 
-        <!-- badge categorie -->
-        <div
-          class="absolute top-3 left-3 z-10 rounded-full px-3 py-1 text-xs font-bold"
-          style="background: #ffffff; color: #e61171"
-        >
-          {{ badgeLabel }}
+        <!-- badges : catégorie + intervalle d'âge (un seul badge âge, pas un par tranche) -->
+        <div class="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+          <div
+            class="rounded-full px-3 py-1 text-xs font-bold"
+            style="background: #ffffff; color: #e61171"
+          >
+            {{ badgeLabel }}
+          </div>
+          <div
+            v-if="ageBadgeLabel"
+            class="rounded-full px-3 py-1 text-xs font-bold"
+            style="background: #ffffff; color: #e61171"
+          >
+            {{ ageBadgeLabel }}
+          </div>
         </div>
       </div>
     </template>

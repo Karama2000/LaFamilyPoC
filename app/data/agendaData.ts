@@ -81,7 +81,11 @@ export interface AgendaEvent {
   categorieLabel?: string         // alias du libellé brut fourni par l’API
   sousCategorie: string          // sous-catégorie : clé de menuData.ts (activités/cours) ou de campSubcategories (camps)
 
-  ageKeys: string[]              // tranches d'âge concernées (clés de ageGroups ci-dessus)
+  ageKeys: string[]              // tranches d'âge concernées (clés de ageGroups ci-dessus) — sert au FILTRE uniquement
+  age?: number                   // âge unique (si Âge Min/Max absents côté Sheet)
+  ageMin?: number                // borne basse, depuis la colonne "Âge Min" du Sheet
+  ageMax?: number                // borne haute, depuis la colonne "Âge Max" du Sheet
+  ageLabel?: string              // libellé d'intervalle déjà calculé par le back (ex: "6 - 11 ans", "Tout public") — à AFFICHER tel quel
   partnerId?: number
   horaires?: string          // ex: '14h à 15h'
   tarif?: string              // ex: 'CHF 15.– enfants) / CHF 20.– (adultes)'

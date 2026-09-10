@@ -68,16 +68,15 @@ const badgeLabel = computed(() =>
   t(categoryLabel[event.value?.categorie ?? ""] ?? event.value?.categorie ?? ""),
 );
 
-const ageBadges = computed(() => {
-  const labels: Record<string, string> = {
-    bebe: "ageBebe",
-    petitEnfant: "agePetitEnfant",
-    enfant: "ageEnfant",
-    adolescent: "ageAdolescent",
-    adulte: "ageAdulte",
-  };
-  return (event.value?.ageKeys ?? []).map((key) => t(labels[key] ?? key));
-});
+/**
+ * Intervalle d'âge de l'événement, affiché en UN SEUL badge sous le titre
+ * (ex: "6 - 11 ans", "Tout public", "8 ans", "À partir de 3 ans").
+ * Le back (ageLabelFromRow dans server/api/agenda.get.ts) calcule déjà ce
+ * libellé à partir des colonnes Âge Min / Âge Max / Âge du Sheet — on
+ * l'affiche tel quel, sans le recalculer ni le découper en plusieurs badges
+ * par tranche.
+ */
+const ageBadgeLabel = computed(() => event.value?.ageLabel?.trim() || "");
 </script>
 
 <!-- ============================================================ -->
@@ -184,8 +183,8 @@ const ageBadges = computed(() => {
                 <BaseButton variant="badge">
                   {{ badgeLabel }}
                 </BaseButton>
-                <BaseButton v-for="age in ageBadges" :key="age" variant="badge">
-                  {{ age }}
+                <BaseButton v-if="ageBadgeLabel" variant="badge">
+                  {{ ageBadgeLabel }}
                 </BaseButton>
               </div>
             </div>

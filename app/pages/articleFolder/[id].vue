@@ -128,9 +128,7 @@ function scrollToSection(id: string) {
     </div>
 
     <!-- ---------------------------------------- -->
-    <!-- CONTENU + SIDEBAR : même pattern que agenda.vue          -->
-    <!-- (md:flex md:gap-8 : contenu flex-1 à gauche, sidebar      -->
-    <!-- sticky à droite, sidebar cachée sur mobile).               -->
+    <!-- CONTENU + SIDEBAR           -->
     <!-- ---------------------------------------- -->
     <div
       class="px-5 md:px-7 mx-auto -mt-8 md:mt-7 relative z-10 md:flex md:gap-8 md:items-start"

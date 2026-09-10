@@ -1,7 +1,5 @@
 // Textes statiques de référence, en français, pour tout le site.
-// Chaque clé est utilisée dans les composants via la fonction t('cléIci')
-// fournie par useTranslation.ts. Les traductions EN/DE/IT sont générées
-// (ou surchargées via translationGlossary.ts) à partir de ce fichier.
+
 export const baseTexts: Record<string, string> = {
   // ---------- Header / navigation ----------
   navSearch: "Je cherche...",

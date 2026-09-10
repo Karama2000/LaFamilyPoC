@@ -1,6 +1,5 @@
 // Traduction italienne de staticTexts.ts.
-// Mêmes clés, même ordre : toute nouvelle clé ajoutée côté FR doit être
-// répercutée ici (et dans staticTextsEn.ts / staticTextsDe.ts).
+
 export const staticTextsIt: Record<string, string> = {
   // ---------- Header / navigation ----------
   navSearch: "Sto cercando...",

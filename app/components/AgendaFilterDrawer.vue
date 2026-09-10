@@ -8,53 +8,6 @@
   parent (prop "filters") et chaque interaction émet un événement pour
   que le parent mette à jour cet état.
 
-  MODIFICATIONS PAR RAPPORT À LA VERSION PRÉCÉDENTE :
-  1. Section "Région" : remplacée par une grille de cartes (comme Âge/Activités)
-     au lieu d'un menu déroulant avec recherche. Sélection MULTIPLE (comme les
-     autres groupes) + bouton "Choisir" qui replie la grille et affiche le(s)
-     canton(s) retenu(s) en résumé.
-  2. "canton" est maintenant un tableau (string[]) et non plus une string unique,
-     exactement comme "ages", "activites", "camps", "campsJour", "cours".
-  3. Chaque canton sélectionné apparaît comme une chip individuelle dans le
-     résumé en haut du tiroir, au même titre que les autres filtres (cliquer
-     sur la chip retire uniquement ce canton-là).
-  4. Toutes les icônes (Âge, Activités, Camps, Camps de jour, Cours) :
-     suppression du cercle rose de fond (#FFCEE4) qui entourait <MenuIcon>.
-     L'icône est maintenant affichée seule, colorée en rose foncé (#E61171)
-     ou en blanc quand l'option est sélectionnée.
-  5. Cartes "Âge" : contenu centré (icône au-dessus du texte, tout centré)
-     au lieu d'aligné à gauche.
-
-  ------------------------------------------------------------------
-  MODIFICATION TYPOGRAPHIE (cette passe) :
-  ------------------------------------------------------------------
-  Uniquement les balises <h2>, <h3> et <p> de ce fichier ont été
-  remplacées par les composants BaseTitle / BaseText, pour que ce
-  tiroir suive exactement la même échelle de tailles que le reste de
-  l'application. Les <span> internes (labels de cantons, résumé
-  sélectionné, sous-textes des cartes Âge...) n'ont volontairement
-  PAS été touchés dans cette passe — ils gardent leurs classes
-  Tailwind d'origine. Aucun contenu texte, aucune logique, aucune
-  classe de mise en page (grille, flex, marges...) n'a changé :
-  seules les classes de TAILLE/GRAISSE/INTERLIGNE portées par les
-  anciens h2/h3/p ont été déplacées dans les composants Base.
-
-  Détail des 8 remplacements effectués :
-    - h2 "agendaFiltresTitle" (titre du tiroir)
-        text-xl (20px, fixe) -> BaseTitle size="section"
-        (20px mobile / 24px desktop, cohérent avec le reste de l'app)
-    - p  (compteur "X filtres actifs", 13px)
-        -> BaseText size="caption" bold (12px mobile / 14px desktop)
-    - h3 "filterRegion" (titre de section, 14px/text-sm)
-        -> BaseTitle size="card" (16px mobile / 20px desktop)
-    - h3 "filterAge", "filterActivites", "filterCamps",
-      "filterCampsJour", "filterCours" (5 titres de section identiques)
-        -> BaseTitle size="card", mêmes valeurs que ci-dessus.
-        Ces h3 ne contiennent pas de texte directement : le texte
-        visible est porté par un <span style="color:#e61171"> à
-        l'intérieur (non modifié). Le h3 lui-même ne sert que de
-        conteneur flex (icône + titre alignés) — sa couleur d'origine
-        est conservée en fallback via la prop "color" du composant.
 -->
 <script setup lang="ts">
 import { cantons, ageGroups, campSubcategories } from "~/data/agendaData";
@@ -725,10 +678,7 @@ onBeforeUnmount(() => {
                 {{ t("agendaReset") }}
               </BaseButton>
               <!--
-                Bouton "Rechercher" : valide tous les filtres choisis et lance la recherche.
-                Utilise la même clé de traduction "agendaApply" — pense à changer sa VALEUR
-                dans staticTexts.ts en "Rechercher" pour chaque langue (fr/en/de/it) si ce
-                n'est pas déjà fait, plutôt que de renommer la clé partout dans le code.
+                Bouton "Rechercher" 
               -->
 
               <BaseButton

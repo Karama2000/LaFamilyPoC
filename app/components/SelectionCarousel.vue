@@ -119,7 +119,7 @@ onUnmounted(() => {
         </BaseButton>
       </div>
 
-      <!-- Flèches de navigation précédent/suivant (masquées s'il n'y a rien à faire défiler) -->
+      <!-- Flèches de navigation précédent/suivant  -->
       <button
         v-if="currentItem"
         @click="prevSlide"
@@ -148,17 +148,10 @@ onUnmounted(() => {
 
   <!-- ===== VERSION DESKTOP : grande image pleine largeur + overlay centré ===== -->
   <section class="relative z-20 bg-white pb-24 px-5 md:px-7 hidden md:block">
-    <!--
-      Image plus grande : max-w augmenté (1319px -> 1600px) et padding
-      latéral de la section réduit (px-12 -> px-6) pour lui laisser plus
-      de place. Le ratio aspect-[1319/642] est gardé pour ne pas déformer
-      les photos existantes, la card grandit juste proportionnellement.
-    -->
+    <!-- Image    -->
     <div class="relative max-w-[1500px] mx-auto aspect-[1319/642]">
       <!--
-        BaseCard variant="agenda" = même card que partout ailleurs dans l'app
-        (bg blanc, radius 10px, ombre 0 13px 19px rgba(0,0,0,.07)).
-        :padding="false" car l'image remplit toute la card.
+        BaseCard 
       -->
       <BaseCard variant="agenda" :padding="false" class="absolute inset-0">
         <!-- Image de fond de la diapositive, en fondu -->
@@ -183,17 +176,7 @@ onUnmounted(() => {
           </BaseButton>
         </div>
 
-        <!--
-          Encart d'info centré : responsive via clamp() au lieu d'une largeur
-          fixe (492px) + max-w 85% -> s'adapte en continu à la taille d'écran
-          sans jamais devenir trop étroit ni trop large.
-          flex flex-col + bouton en dernier avec margin-top fixe (mt-6) au
-          lieu de dépendre du flux du texte : la description est clampée à
-          6 lignes (line-clamp-6, "..." automatique si plus long) donc la
-          hauteur de l'encart varie très peu d'un item à l'autre, et le
-          bouton reste visuellement à la même place / même style à chaque
-          diapo.
-        -->
+        <!--  Encart d'info centré     -->
         <Transition name="fade" mode="out-in">
           <div
             v-if="currentItem"
@@ -218,9 +201,6 @@ onUnmounted(() => {
               {{ currentItem.description }}
             </BaseSubtitle>
 
-            <!-- mt-6 fixe (pas mb-6 sur la description) : le bouton garde
-                 toujours le même espacement au-dessus de lui, peu importe
-                 le nombre de lignes du texte au-dessus. -->
             <BaseButton
               variant="peach"
               :to="`/agendaFolder/${currentItem.id}`"
@@ -232,12 +212,7 @@ onUnmounted(() => {
         </Transition>
       </BaseCard>
 
-      <!--
-        Flèches de navigation : repositionnées à l'INTÉRIEUR du cadre de
-        l'image (left-4/right-4) au lieu d'être à cheval sur le bord
-        (-left-5/-translate-x-1/2 qui les faisait dépasser à moitié à
-        l'extérieur) — comme sur la capture fournie.
-      -->
+      <!--  Flèches de navigation  -->
       <button
         v-if="currentItem"
         @click="prevSlide"

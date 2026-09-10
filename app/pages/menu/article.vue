@@ -5,13 +5,6 @@
 <!-- aussi une section "Agenda" et "Partenaires" en relation avec   -->
 <!-- la catégorie sélectionnée.                                     -->
 <!--                                                                -->
-<!-- MODIFICATIONS :                                                -->
-<!-- 1. Les boutons "Agenda" / "Partenaires" sont maintenant         -->
-<!--    TOUJOURS affichés (avant : v-if sur chacun selon qu'il y     -->
-<!--    avait des résultats). Un clic scrolle vers la section        -->
-<!--    correspondante, même si elle est vide pour l'instant.        -->
-<!-- 2. Ajout de la section "AGENDA EN RELATION" (id="agenda-section")-->
-<!--    qui manquait — seule la section Partenaires existait.        -->
 <!-- ====================================================== -->
 <script setup lang="ts">
 import { articleCategories } from "~/data/articleData";
@@ -111,14 +104,7 @@ function scrollToSection(id: string) {
     style="background: #fff8f4"
   >
     <!-- ===== HERO ===== -->
-    <!--
-      MOBILE (< md) : inchangé, garde la vague comme avant.
-      DESKTOP (md+) : PLUS de vague — juste le bandeau rose normal, avec
-      une bannière (box) ajoutée à droite du titre, comme sur la maquette
-      Figma ("Card Bannière haut de site" : fond #FFEDE3 à 50% d'opacité,
-      bordure 2px #FFCEE4). Radius mis à 10px (règle globale de l'app)
-      au lieu des 14px du Figma.
-    -->
+    
     <div
       class="relative overflow-hidden min-h-[300px] md:min-h-[340px] flex flex-col text-white"
       style="background: #e61171"
@@ -166,13 +152,6 @@ function scrollToSection(id: string) {
           </div>
         </div>
 
-        <!--
-          Bannière : DESKTOP UNIQUEMENT (md+), à droite du titre — reprend
-          la "Card Bannière haut de site" du Figma. C'est un emplacement
-          générique (bannière pub / mise en avant) ; dis-moi ce que tu veux
-          mettre dedans si ce n'est pas juste un fond vide (image, lien,
-          logo partenaire...).
-        -->
         <div
           class="hidden md:block flex-1 max-w-[908px] h-[145px] rounded-[10px]"
           style="background: #ffede3; opacity: 0.5; border: 2px solid #ffcee4"

@@ -48,10 +48,7 @@
     navMenu          17px -> 19px
     navMenuCherche   17px -> 19px
     navMenuDevPart   17px -> 19px
-    outlineAction    13px -> 15px  (AVANT : desktop tombait à 10px,
-                                     donc plus PETIT sur desktop —
-                                     c'était l'inverse de la règle
-                                     voulue, corrigé ici)
+    outlineAction    13px -> 15px 
     whiteOutline     14px -> 16px
     external         14px -> 16px
 

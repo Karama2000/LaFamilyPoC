@@ -22,10 +22,7 @@ function onLangChange(lang: string) {
   setLang(lang as any);
 }
 
-// Utilise exactement la même source de données que l’agenda principal.
-// Comme pour agenda.vue : il faut transmettre `lang` et une `key` par
-// langue, sinon cette vue reste bloquée en français quel que soit le
-// drapeau cliqué dans le header (voir normalizeLanguage() côté serveur).
+
 const { data: apiAgendaEvents } = useFetch<AgendaEvent[]>("/api/agenda", {
   query: { lang: currentLang },
   key: computed(() => `agenda-${currentLang.value}`),
@@ -177,7 +174,7 @@ const filteredEvents = computed(() => {
     </div>
 
     <!-- ---------------------------------------- -->
-    <!-- MOBILE UNIQUEMENT : barre de recherche pleine largeur — INCHANGÉE -->
+    <!-- MOBILE UNIQUEMENT : barre de recherche pleine largeur  -->
     <!-- ---------------------------------------- -->
     <div
       class="md:hidden relative z-30 pb-7 md:mt-5 px-5 md:px-7"
@@ -194,7 +191,7 @@ const filteredEvents = computed(() => {
 
     <!-- ---------------------------------------- -->
     <!-- DESKTOP UNIQUEMENT : barre de recherche sur fond BLANC qui chevauche -->
-    <!-- le hero, comme pages/agenda.vue. PAS de bouton "Filtres" (cette page -->
+    <!-- le hero -->
     <!-- est déjà pré-filtrée par catégorie depuis le menu, pas de tiroir).   -->
     <!-- ---------------------------------------- -->
     <div
@@ -212,7 +209,7 @@ const filteredEvents = computed(() => {
     </div>
 
     <!-- ---------------------------------------- -->
-    <!-- RÉSULTATS + SIDEBAR (desktop) — mobile : résultats seuls, sidebar cachée -->
+    <!-- RÉSULTATS + SIDEBAR (desktop) — mobile : résultats-->
     <!-- ---------------------------------------- -->
     <div
       ref="resultsSection"

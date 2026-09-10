@@ -9,19 +9,6 @@
   Les filtres actifs sont pilotés par le parent via les props "zone" et
   "category" et les événements "set-zone" / "set-category".
 
-  MODIFICATIONS :
-  1. Suppression du code lié à un éventuel "emoji" sur les zones (n'existe pas
-     dans la liste "zones", ça n'affichait jamais rien mais polluait le code).
-  2. Le panneau du dropdown fait maintenant EXACTEMENT la même largeur que le
-     bouton déclencheur (plus de left-4/right-4 qui le désalignait).
-  3. Sélection de zone en 2 temps : cliquer une zone la sélectionne dans un
-     état "draft" (surbrillance immédiate) SANS fermer le dropdown ni valider.
-     Le bouton "Choisir" apparaît dès qu'un draft est en cours, et c'est lui
-     qui valide (émet vers le parent) et ferme le dropdown.
-  4. "category" est maintenant un tableau (string[]) et non plus une string
-     unique : sélection multiple de catégories, comme ages/activites/etc.
-     dans AgendaFilterDrawer.vue. Résumé en bas : nombre de filtres actifs,
-     chips des filtres actifs (retirables), bouton "Réinitialiser".
 -->
 <script setup lang="ts">
 import { partnerCategories as partnerCategoriesData  } from "~/data/partnersData";

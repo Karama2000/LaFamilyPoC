@@ -197,14 +197,7 @@ function goNext() {
 
       <!-- Carte centrale : élément actif, en pleine taille et pleine opacité -->
 
-      <!--
-        Carte centrale : élément actif. BaseCard variant="agendaDesktopLarge"
-        = dimensions FIXES (636x680), ne bouge JAMAIS peu importe la longueur
-        du texte — la description est coupée à 6 lignes (line-clamp-6, "..."
-        automatique) au lieu de faire grandir la card.
-        :padding="false" car on gère l'espacement nous-mêmes (p-[23px_23px_28px]
-        d'origine, gardé pour respecter l'agencement précis du design).
-      -->
+     
       <BaseCard
         variant="agendaDesktop"
         :padding="false"
@@ -220,8 +213,7 @@ function goNext() {
           />
         </div>
 
-        <!-- Titre 24px = BaseSubtitle size="subtitle" (même composant que les
-             autres sous-titres de l'app) -->
+        <!-- Titre -->
         <BaseSubtitle
           size="subtitle"
           tag="h3"
@@ -231,8 +223,7 @@ function goNext() {
           {{ currentItem.titre }}
         </BaseSubtitle>
 
-        <!-- Description : BaseText (20px, comme partout ailleurs), coupée à
-             6 lignes pour ne jamais faire déborder la card -->
+        <!-- Description  -->
 
         <BaseSubtitle
           size="description"

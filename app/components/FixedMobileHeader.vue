@@ -1,18 +1,13 @@
 <!--
   MobileFixedHeader.vue
   ---------------------
-  Composant affichant l'en-tête fixe sur mobile.
-  Il contient le header principal ainsi que la bande
-  "Coups de cœur". Un espace est ajouté sous le header
-  afin d'éviter que le contenu des pages soit masqué
-  lorsque l'utilisateur fait défiler la page.
 -->
 
 <script setup lang="ts">
 const { currentLang, t, setLang } = useTranslation()
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], [])
+  setLang(lang as any,)
 }
 </script>
 
@@ -31,9 +26,6 @@ function onLangChange(lang: string) {
 
   <!--
     Espace de compensation.
-    Comme le header est en position "fixed", il ne prend plus
-    de place dans le flux de la page. Ce bloc évite que le
-    contenu commence sous le header et soit caché.
   -->
   <div class="h-[255px] md:hidden"></div>
 </template>

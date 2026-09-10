@@ -6,12 +6,6 @@
   et leurs pages de détail). Regroupe tout ce qui était dupliqué :
   fond rose, vagues SVG, header mobile/desktop, titre + sous-titre.
 
-  UTILISATION :
-  <PageHero :t="t" :current-lang="currentLang" @set-lang="onLangChange">
-    <h1>Mon titre</h1>
-    <p>Mon sous-titre</p>
-  </PageHero>
-
   Le slot par défaut permet de mettre n'importe quel contenu (titre simple,
   ou titre + badges + date comme dans article/[id].vue).
 -->

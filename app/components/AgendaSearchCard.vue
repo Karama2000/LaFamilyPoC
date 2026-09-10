@@ -5,11 +5,7 @@
   loupe + deux sélecteurs de date (date de début / date de fin) qui
   utilisent le composant AgendaDatePicker.
 
-  MODIFICATION :
-  Ajout d'un bouton "Chercher" affiché uniquement lorsque les 2 dates
-  (début ET fin) sont renseignées. Le clic émet un événement "search"
-  vers le parent (qui peut s'en servir pour, par ex., faire défiler
-  la page jusqu'aux résultats).
+
 -->
 <script setup lang="ts">
 // "props" est nommé (const props = ...) pour pouvoir être lu dans le computed ci-dessous

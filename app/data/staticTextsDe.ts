@@ -1,6 +1,5 @@
 // Traduction allemande de staticTexts.ts.
-// Mêmes clés, même ordre : toute nouvelle clé ajoutée côté FR doit être
-// répercutée ici (et dans staticTextsEn.ts / staticTextsIt.ts).
+
 export const staticTextsDe: Record<string, string> = {
   // ---------- Header / navigation ----------
   navSearch: "Ich suche...",
@@ -146,7 +145,7 @@ export const staticTextsDe: Record<string, string> = {
   agendaAutresLieuxDates: "Finden Sie uns auch in",
   agendaLe: "am",
   agendaSiteOrganisateur:
-    "Weitere Informationen auf der Website des Veranstalters",
+    "Veranstalter-Website",
   agendaDateValidate: "Bestätigen",
 
   filterRegion: "Region",
@@ -330,4 +329,8 @@ agendaPreviousMonth: "Vorheriger Monat",
 agendaNextMonth: "Nächster Monat",
 
 lePlusChoisi: "Am häufigsten gewählt",
+
+agendaAutreOccurrence: "Andere Vorkommen",
+agendaAutresOccurrences: "Andere Vorkommen"
+
 };

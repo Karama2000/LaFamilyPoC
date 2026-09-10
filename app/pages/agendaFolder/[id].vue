@@ -156,22 +156,11 @@ const ageBadges = computed(() => {
     <!-- CONTENU PRINCIPAL                        -->
     <!-- ---------------------------------------- -->
     <section class="px-5 md:px-7 mx-auto md:mt-10 relative z-10 pb-10 bg-white">
-      <!--
-    GRID PRINCIPALE
-    - Mobile (< md)  : 1 colonne (empilé) — INCHANGÉ
-    - MD (md → lg)   : 2 colonnes -> [ colonne contenu (image+desc+infos+contact) | sidebar ]
-    - LG (>= lg)     : 3 colonnes -> [ image+description | infos pratiques+contact | sidebar ]
-  -->
+      
       <div
         class="grid grid-cols-1 md:grid-cols-[1fr_220px] lg:grid-cols-[1fr_320px_220px] gap-3 md:gap-8 items-start"
       >
-        <!--
-      WRAPPER "colonne contenu"
-      - Sur mobile/MD : flex-col -> image+description et infos+contact sont empilés
-        l'un sous l'autre, formant UNE seule colonne (celle de gauche dans la grille MD).
-      - Sur LG : lg:flex-row -> les deux blocs se séparent côte à côte pour occuper
-        les 2 premières colonnes de la grille (1fr + 320px), grâce à lg:col-span-2.
-    -->
+       
         <div
           ref="referenceRef"
           class="flex flex-col lg:flex-row lg:col-span-2 gap-3 md:gap-8"

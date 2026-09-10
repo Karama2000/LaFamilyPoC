@@ -21,7 +21,7 @@ const { currentLang, t, setLang } = useTranslation();
 const route = useRoute();
 
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any,);
 }
 
 // Catégorie sélectionnée (clé technique de articleCategories, ex: 'grossesse')

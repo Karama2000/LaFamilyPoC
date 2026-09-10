@@ -27,8 +27,7 @@ const router = useRouter();
 const route = useRoute();
 
 // Les données live passent par la route serveur fusionnée, qui protège les
-// webhooks n8n. Le contenu local reste disponible comme repli si le webhook
-// est indisponible ou ne renvoie aucune ligne.
+
 const {
   data: apiAgendaEvents,
   pending: agendaPending,

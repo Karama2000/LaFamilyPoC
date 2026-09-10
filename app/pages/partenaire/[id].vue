@@ -16,6 +16,7 @@ import { agendaEventsFR } from "~/data/agendaData";
 import type { AgendaEvent } from "~/data/agendaData";
 import CoupsDeCoeurSidebar from "~/components/CoupsDeCoeurSidebar.vue";
 import { useReferenceHeight } from "~/composables/useReferenceHeight";
+import { usePartnerLogo } from "~/composables/usepartnerlogo";
 
 const { referenceRef, referenceHeight } = useReferenceHeight();
 
@@ -56,9 +57,25 @@ function onLangChange(lang: string) {
 // ----------------------------------------------------------------
 // 3. RÉCUPÉRATION DU PARTENAIRE
 // ----------------------------------------------------------------
-const partner = computed(() =>
-  partners.value.find((p) => p.id === Number(route.params.id)),
-);
+// Repli par ID : si l'onglet de la langue active (ex: IT) renvoie moins de
+// lignes que le FR (ou dans un ordre différent), les ID auto-générés se
+// décalent et l'ID demandé peut ne plus exister dans `partners.value` alors
+// qu'il existe bien côté FR. Sans ce repli, la page reste silencieusement
+// vide (le v-if="partner" masque tout) au lieu d'afficher le partenaire.
+const partner = computed(() => {
+  const id = Number(route.params.id);
+  return (
+    partners.value.find((p) => p.id === id) ??
+    partnersFR.find((p) => p.id === id)
+  );
+});
+
+// Même logique de fallback que sur la carte partenaire (PartnerCard.vue) :
+// si partner.logo est vide ou que l'image ne charge pas, on retombe sur le
+// visuel par défaut de la catégorie. Sans ça, la page détail affichait une
+// icône d'image cassée là où la liste des partenaires montrait déjà le
+// visuel de repli.
+const { displayedLogo, useFallbackLogo } = usePartnerLogo(partner);
 
 // Tous les événements qui appartiennent à CE partenaire.
 const partnerEvents = computed(() =>
@@ -146,9 +163,10 @@ const coverageBadges = computed(() =>
             "
           >
             <img
-              :src="partner.logo"
+              :src="displayedLogo"
               :alt="partner.name"
               class="w-full h-full object-contain"
+              @error="useFallbackLogo"
             />
           </div>
 
@@ -194,9 +212,10 @@ const coverageBadges = computed(() =>
           "
         >
           <img
-            :src="partner.logo"
+            :src="displayedLogo"
             :alt="partner.name"
             class="w-full h-full object-contain"
+            @error="useFallbackLogo"
           />
         </div>
 

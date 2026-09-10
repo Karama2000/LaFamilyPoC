@@ -38,11 +38,37 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      title: "DieFamilie",
       link: [
         {
           rel: "stylesheet",
           href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap",
         },
+        // L'ancien favicon pointait vers le logo texte complet
+        // (public/images/logo_diefamilie.png) : trop large et trop pâle,
+        // il devient invisible une fois réduit à la taille d'un onglet.
+        // On utilise à la place une icône carrée dédiée, fond rose de
+        // marque (--color-primary / #e61171), lisible en petit.
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "16x16",
+          href: "/favicon-16.png",
+        },
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "32x32",
+          href: "/favicon-32.png",
+        },
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "192x192",
+          href: "/favicon-192.png",
+        },
+        { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       ],
     },
   },

@@ -50,7 +50,7 @@ export const partnersFR: Partner[] = [
     id: 1,
     name: "Musée suisse de l'appareil photographique",
     slug: "camera-museum",
-    logo: "/images/logos/camera-museum.png",
+    logo: "", // TODO: ajouter public/images/logos/camera-museum.png
     link: "https://www.cameramuseum.ch/evenements/",
     website: "https://www.cameramuseum.ch/evenements/",
     coverage: ["SR"],
@@ -81,7 +81,7 @@ export const partnersFR: Partner[] = [
     id: 2,
     name: "Faisceau Cadet Vaudois et Valaisan",
     slug: "cadet-vaudois",
-    logo: "/images/logos/cadet-vaudois.png",
+    logo: "", // TODO: ajouter public/images/logos/cadet-vaudois.png
     link: "https://www.cadet.ch/activites",
     website: "https://www.cadet.ch/activites",
     coverage: ["SR"],
@@ -114,7 +114,7 @@ export const partnersFR: Partner[] = [
     id: 3,
     name: "Conservatoire de l'Ouest Vaudois",
     slug: "covaud",
-    logo: "/images/logos/covaud.png",
+    logo: "", // TODO: ajouter public/images/logos/covaud.png
     link: "https://www.covaud.ch/f/agenda/concert-et-evenements.asp",
     website: "https://www.covaud.ch/f/agenda/concert-et-evenements.asp",
     coverage: ["SR"],
@@ -273,7 +273,7 @@ export const partnersFR: Partner[] = [
     id: 7,
     name: "Mudac, Fondation Plateforme 10",
     slug: "mudac",
-    logo: "/images/logos/mudac.png",
+    logo: "", // TODO: ajouter public/images/logos/mudac.png
     link: "https://mudac.ch/agenda/",
     website: "https://mudac.ch/agenda/",
     coverage: ["SR"],
@@ -339,7 +339,7 @@ export const partnersFR: Partner[] = [
     id: 9,
     name: "Ecole Apolline",
     slug: "apolline",
-    logo: "/images/logos/apolline.png",
+    logo: "", // TODO: ajouter public/images/logos/apolline.png
     link: "https://camps.apolline.art/",
     website: "https://camps.apolline.art/",
     coverage: ["SR"],
@@ -372,7 +372,7 @@ export const partnersFR: Partner[] = [
     id: 10,
     name: "Ecole d'art Ceruleum",
     slug: "ceruleum",
-    logo: "/images/logos/ceruleum.png",
+    logo: "", // TODO: ajouter public/images/logos/ceruleum.png
     link: "https://www.ceruleum.ch/fr/cours-de-vacances.html",
     website: "https://www.ceruleum.ch/fr/cours-de-vacances.html",
     coverage: ["SR"],
@@ -405,7 +405,7 @@ export const partnersFR: Partner[] = [
     id: 11,
     name: "Fondation Plateforme 10 - Photo Elysée",
     slug: "photo-elysee",
-    logo: "/images/logos/photo-elysee.png",
+    logo: "", // TODO: ajouter public/images/logos/photo-elysee.png
     link: "https://elysee.ch/musee/plateforme10/",
     website: "https://elysee.ch/musee/plateforme10/",
     coverage: ["SR"],
@@ -438,7 +438,7 @@ export const partnersFR: Partner[] = [
     id: 12,
     name: "Conservatoire Montreux-Vevey-Riviera",
     slug: "conservatoire-mvr",
-    logo: "/images/logos/conservatoire-mvr.png",
+    logo: "", // TODO: ajouter public/images/logos/conservatoire-mvr.png
     link: "https://www.conservatoire.ch/agenda",
     website: "https://www.conservatoire.ch/agenda",
     coverage: ["SR"],
@@ -570,7 +570,7 @@ export const partnersFR: Partner[] = [
     id: 16,
     name: "Fondation HEMU-CL",
     slug: "hemu",
-    logo: "/images/logos/hemu.png",
+    logo: "", // TODO: ajouter public/images/logos/hemu.png
     link: "https://www.hemu.ch/agenda",
     website: "https://www.hemu.ch/agenda",
     coverage: ["SR"],
@@ -603,7 +603,7 @@ export const partnersFR: Partner[] = [
     id: 17,
     name: "Cadets de Yens",
     slug: "cadets-yens",
-    logo: "/images/logos/cadets-yens.png",
+    logo: "", // TODO: ajouter public/images/logos/cadets-yens.png
     link: "https://www.yens.ch/culture-sport-loisirs/evenements-agenda",
     website: "https://www.yens.ch/culture-sport-loisirs/evenements-agenda",
     coverage: ["SR"],
@@ -636,7 +636,7 @@ export const partnersFR: Partner[] = [
     id: 18,
     name: "Plateforme 10 - centrale",
     slug: "plateforme10",
-    logo: "/images/logos/plateforme10.png",
+    logo: "", // TODO: ajouter public/images/logos/plateforme10.png
     link: "https://plateforme10.ch/agenda/?interval=week",
     website: "https://plateforme10.ch/agenda/?interval=week",
     coverage: ["SR"],
@@ -702,7 +702,7 @@ export const partnersFR: Partner[] = [
     id: 20,
     name: "Télé-La Fouly - Champex Lac",
     slug: "saint-bernard",
-    logo: "/images/logos/saint-bernard.png",
+    logo: "", // TODO: ajouter public/images/logos/saint-bernard.png
     link: "https://www.saint-bernard.ch/fr/activites/agenda-32/",
     website: "https://www.saint-bernard.ch/fr/activites/agenda-32/",
     coverage: ["SR"],
@@ -802,7 +802,7 @@ export const partnersFR: Partner[] = [
     id: 23,
     name: "Fondation Plateforme 10 - MCBA",
     slug: "mcba",
-    logo: "/images/logos/mcba.png",
+    logo: "", // TODO: ajouter public/images/logos/mcba.png
     link: "https://www.mcba.ch/",
     website: "https://www.mcba.ch/",
     coverage: ["SR"],
@@ -835,7 +835,7 @@ export const partnersFR: Partner[] = [
     id: 24,
     name: "Camélia Académie de Danse",
     slug: "camelia",
-    logo: "/images/logos/camelia.png",
+    logo: "", // TODO: ajouter public/images/logos/camelia.png
     link: "https://www.cameliaacademiededanse.ch/cours-de-danse-gland",
     website: "https://www.cameliaacademiededanse.ch/cours-de-danse-gland",
     coverage: ["SR"],
@@ -868,7 +868,7 @@ export const partnersFR: Partner[] = [
     id: 25,
     name: "Musées cantonaux du Valais",
     slug: "musees-valais",
-    logo: "/images/logos/musees-valais.png",
+    logo: "", // TODO: ajouter public/images/logos/musees-valais.png
     link: "https://agenda.culturevalais.ch/fr/agenda",
     website: "https://agenda.culturevalais.ch/fr/agenda",
     coverage: ["SR"],

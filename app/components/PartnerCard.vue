@@ -6,8 +6,9 @@
   catégorie, nom et bouton "visiter le site".
 -->
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import type { Partner } from "~/data/partnersData";
+import { usePartnerLogo } from "~/composables/usepartnerlogo";
 
 const props = defineProps<{
   partner: Partner; // données du partenaire à afficher
@@ -19,39 +20,10 @@ const props = defineProps<{
 const partner = computed(() => props.partner);
 const t = (key: string) => props.t(key);
 
-// Images de repli déjà présentes dans /public/images/partners.
-const defaultLogoByCategory: Record<string, string> = {
-  partnerCatAssociation: "/images/partners/association.png",
-  partnerCatCabinet: "/images/partners/cabinet.png",
-  partnerCatEcole: "/images/partners/ecole.png",
-  partnerCatExpert: "/images/partners/expert.png",
-  partnerCatGardeEnfants: "/images/partners/garde-enfant.png",
-  partnerCatMusee: "/images/partners/musee.png",
-};
-
-const fallbackLogo = computed(
-  () =>
-    defaultLogoByCategory[props.partner.category] ??
-    "/images/partners/association.png",
-);
-const logoFailed = ref(false);
-
-const displayedLogo = computed(() =>
-  logoFailed.value || !props.partner.logo
-    ? fallbackLogo.value
-    : props.partner.logo,
-);
-
-function useFallbackLogo() {
-  logoFailed.value = true;
-}
-
-watch(
-  () => props.partner.logo,
-  () => {
-    logoFailed.value = false;
-  },
-);
+// Logique de fallback du logo mutualisée avec la page détail partenaire
+// (voir composables/usePartnerLogo.ts) afin que les deux pages affichent
+// toujours la même image.
+const { displayedLogo, useFallbackLogo } = usePartnerLogo(partner);
 </script>
 
 <template>

@@ -60,9 +60,9 @@ const cache = new Map<
 // DE/IT/EN du Sheet partenaires (mêmes noms de colonnes que sur l'onglet
 // agenda correspondant).
 const FIELD_NAMES = {
-  name: ['Nom du client', 'Nom', 'name', 'Name', 'Nome'],
-  company: ['Entreprise', 'Organisation', 'Firma', 'Azienda'],
-  site: ['Site', 'website', 'url', 'Website', 'Sito'],
+  name: ['Nom du client', 'Nom', 'name', 'Name', 'Nome', 'Kundenname', 'Client Name', 'Nome cliente'],
+  company: ['Entreprise', 'Organisation', 'Firma', 'Azienda', 'Unternehmen', 'Business'],
+  site: ['Site', 'website', 'url', 'Website', 'Sito', 'Webseite'],
   logo: ['Logo', 'logo'],
   address: ['Adresse', 'address', 'Anschrift', 'Indirizzo'],
   email: ['Email', 'email', 'E-mail', 'E-Mail'],
@@ -155,6 +155,19 @@ function coverageFrom(address: string): ('SR' | 'SA')[] {
   return ['SR', 'SA']
 }
 
+// Une valeur de logo n'est utilisable que si le navigateur peut vraiment la
+// charger : une URL absolue (http/https), ou un chemin qui pointe réellement
+// dans /public/images de CE projet. Tout le reste (texte libre, chemin
+// relatif copié depuis un autre site) est rejeté ici plutôt que d'atterrir
+// tel quel dans un <img src>.
+function isUsableLogoValue(rawLogo: string): boolean {
+  const trimmed = rawLogo.trim()
+  if (!trimmed) return false
+  if (/^https?:\/\//i.test(trimmed)) return true
+  if (trimmed.startsWith('/images/')) return true
+  return false
+}
+
 function parseId(row: RawRow, index: number): number {
   const id = Number(value(row, 'ID', 'id'))
   return Number.isFinite(id) && id > 0 ? id : index + 1
@@ -166,9 +179,12 @@ function normalizeRow(row: RawRow, index: number): Partner {
   const category = categoryFrom(row)
   const logoFromSheet = value(row, ...FIELD_NAMES.logo)
   const fallbackLogo: string = DEFAULT_LOGOS[category] ?? '/images/partners/association.png'
-  const logo: string = /^(null|undefined|n\/a|na|-)+$/i.test(logoFromSheet)
-    ? fallbackLogo
-    : (logoFromSheet || fallbackLogo)
+  // On n'accepte que ce qui peut vraiment être chargé par le navigateur :
+  // une URL absolue (http/https) ou un chemin local sous /images/. Tout le
+  // reste (texte libre style "Non trouvé", chemins relatifs copiés depuis
+  // un autre site type "/media/yootheme/..." ou "/_assets/...") tombe sur
+  // le logo de repli au lieu d'être envoyé tel quel au client.
+  const logo: string = isUsableLogoValue(logoFromSheet) ? logoFromSheet : fallbackLogo
   const address = value(row, ...FIELD_NAMES.address) || null
   const email = value(row, ...FIELD_NAMES.email) || null
   const phone = value(row, ...FIELD_NAMES.phone) || null

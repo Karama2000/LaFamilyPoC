@@ -12,21 +12,26 @@ import { partnersFR, type Partner } from "~/data/partnersData";
 // Les partenaires sont chargés via la route serveur afin de garder l’URL
 // n8n privée. Le catalogue local sert de repli pour préserver l’affichage
 // même lorsque la source distante est momentanément indisponible.
+// ----------------------------------------------------------------
+// 2. COMPOSABLES & ROUTING
+// ----------------------------------------------------------------
+const { currentLang, t, setLang } = useTranslation();
+
+// Même logique que agenda.vue : on transmet `lang` à la route serveur et on
+// change la `key` du useFetch par langue, sinon la page reste bloquée en
+// français après un clic sur DE/IT/EN.
 const {
   data: apiPartners,
   pending: partnersPending,
   error: partnersError,
 } = useFetch<Partner[]>("/api/partners", {
-  default: () => partnersFR,
+  query: { lang: currentLang },
+  key: computed(() => `partners-${currentLang.value}`),
+  default: () => (currentLang.value === "fr" ? partnersFR : []),
 });
 const partners = computed(() =>
   apiPartners.value?.length ? apiPartners.value : partnersFR,
 );
-
-// ----------------------------------------------------------------
-// 2. COMPOSABLES & ROUTING
-// ----------------------------------------------------------------
-const { currentLang, t, setLang } = useTranslation();
 const router = useRouter();
 import { useReferenceHeight } from "~/composables/useReferenceHeight";
 
@@ -41,7 +46,7 @@ const { referenceRef, referenceHeight } = useReferenceHeight();
  * @param lang - Code de la langue
  */
 function onLangChange(lang: string) {
-  setLang(lang as any, [], []);
+  setLang(lang as any);
 }
 
 // ----------------------------------------------------------------

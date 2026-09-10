@@ -33,6 +33,9 @@ interface Partner {
 
 type RawRow = Record<string, unknown>
 
+// Même typage que server/api/agenda.get.ts : les 4 langues du site.
+type PartnerLanguage = 'fr' | 'de' | 'it' | 'en'
+
 const CACHE_DURATION_MS = 10 * 60 * 1000
 const DEFAULT_LOGOS: Record<string, string> = {
   partnerCatEcole: '/images/partners/ecole.png',
@@ -43,7 +46,43 @@ const DEFAULT_LOGOS: Record<string, string> = {
   partnerCatExpert: '/images/partners/expert.png',
 }
 
-let cache: { data: Partner[]; fetchedAt: number } | null = null
+// Même principe que dans agenda.get.ts : un cache PAR LANGUE, sinon une
+// réponse FR reste affichée après un clic sur DE/IT/EN.
+const cache = new Map<
+  PartnerLanguage,
+  { data: Partner[]; fetchedAt: number }
+>()
+
+// Colonnes de la feuille Google Sheets, déclinées par langue — comme
+// FIELD_NAMES dans agenda.get.ts. On garde les libellés "FR-only" actuels
+// (Nom du client, Entreprise, Adresse, Tel...) en repli pour toutes les
+// langues, et on ajoute les variantes traduites attendues sur les onglets
+// DE/IT/EN du Sheet partenaires (mêmes noms de colonnes que sur l'onglet
+// agenda correspondant).
+const FIELD_NAMES = {
+  name: ['Nom du client', 'Nom', 'name', 'Name', 'Nome'],
+  company: ['Entreprise', 'Organisation', 'Firma', 'Azienda'],
+  site: ['Site', 'website', 'url', 'Website', 'Sito'],
+  logo: ['Logo', 'logo'],
+  address: ['Adresse', 'address', 'Anschrift', 'Indirizzo'],
+  email: ['Email', 'email', 'E-mail', 'E-Mail'],
+  phone: ['Tel', 'Téléphone', 'phone', 'Telefon', 'Telefono'],
+  description: [
+    'DescriptionFR',
+    'Description FR',
+    'about',
+    'Description',
+    'Beschreibung',
+    'Descrizione',
+  ],
+}
+
+function normalizeLanguage(value: unknown): PartnerLanguage {
+  const language = String(value ?? 'fr').trim().toLowerCase()
+  return language === 'de' || language === 'it' || language === 'en'
+    ? language
+    : 'fr'
+}
 
 function normalizeKey(value: unknown): string {
   return String(value ?? '')
@@ -97,7 +136,7 @@ function slugify(name: string): string {
 }
 
 function categoryFrom(row: RawRow): string {
-  const text = normalizeKey(`${value(row, 'Nom du client', 'Nom', 'name')} ${value(row, 'Entreprise', 'category')}`)
+  const text = normalizeKey(`${value(row, ...FIELD_NAMES.name)} ${value(row, ...FIELD_NAMES.company)}`)
   if (/(musee|museum|plateforme10|alimentarium|chaplin|chateau|fondation.*culturelle)/.test(text)) return 'partnerCatMusee'
   if (/(garde|creche|enfance|parents|famille|massagebebe|jumeaux|supermamans)/.test(text)) return 'partnerCatGardeEnfants'
   if (/(cabinet|clinique|medecin|sante|allergie|psych|therap|massage)/.test(text)) return 'partnerCatCabinet'
@@ -122,18 +161,21 @@ function parseId(row: RawRow, index: number): number {
 }
 
 function normalizeRow(row: RawRow, index: number): Partner {
-  const name = value(row, 'Nom du client', 'Nom', 'name') || value(row, 'Entreprise', 'Organisation') || `Partenaire ${index + 1}`
-  const site = value(row, 'Site', 'website', 'url')
+  const name = value(row, ...FIELD_NAMES.name) || value(row, ...FIELD_NAMES.company) || `Partenaire ${index + 1}`
+  const site = value(row, ...FIELD_NAMES.site)
   const category = categoryFrom(row)
-  const logoFromSheet = value(row, 'Logo', 'logo')
+  const logoFromSheet = value(row, ...FIELD_NAMES.logo)
   const fallbackLogo: string = DEFAULT_LOGOS[category] ?? '/images/partners/association.png'
   const logo: string = /^(null|undefined|n\/a|na|-)+$/i.test(logoFromSheet)
     ? fallbackLogo
     : (logoFromSheet || fallbackLogo)
-  const address = value(row, 'Adresse', 'address') || null
-  const email = value(row, 'Email', 'email') || null
-  const phone = value(row, 'Tel', 'Téléphone', 'phone') || null
-  const descriptionFr = value(row, 'DescriptionFR', 'Description FR', 'about')
+  const address = value(row, ...FIELD_NAMES.address) || null
+  const email = value(row, ...FIELD_NAMES.email) || null
+  const phone = value(row, ...FIELD_NAMES.phone) || null
+  // La langue est déjà résolue côté n8n (onglet Sheet FR/DE/IT/EN) : on lit
+  // simplement la colonne description telle que renvoyée pour cette langue,
+  // comme le fait normalizeRow() côté agenda.
+  const description = value(row, ...FIELD_NAMES.description)
   const id = parseId(row, index)
   const slug = `${slugify(name)}-${id}`
 
@@ -146,20 +188,27 @@ function normalizeRow(row: RawRow, index: number): Partner {
     website: site || '#',
     coverage: coverageFrom(address || name),
     category,
-    about: descriptionFr || null,
-    description: descriptionFr ? [{ title: name, text: descriptionFr }] : null,
+    about: description || null,
+    description: description ? [{ title: name, text: description }] : null,
     contact: { address, phone, mobile: null, email, website: site || null },
     socialNetworks: { facebook: null, instagram: null, youtube: null, linkedin: null, tiktok: null },
     photos: [],
   }
 }
 
-export default defineEventHandler(async (): Promise<Partner[]> => {
-  if (cache && Date.now() - cache.fetchedAt < CACHE_DURATION_MS) return cache.data
+export default defineEventHandler(async (event): Promise<Partner[]> => {
+  const query = getQuery(event)
+  const lang = normalizeLanguage(query.lang)
+  const cached = cache.get(lang)
+  if (cached && Date.now() - cached.fetchedAt < CACHE_DURATION_MS) return cached.data
 
   try {
     const config = useRuntimeConfig()
-    const rawResponse = await $fetch<unknown>(config.n8nPartnersWebhookUrl)
+    // Comme agenda.get.ts : on transmet `lang` au webhook n8n, qui choisit
+    // l'onglet Google Sheets correspondant (FR/DE/IT/EN).
+    const rawResponse = await $fetch<unknown>(config.n8nPartnersWebhookUrl, {
+      query: { lang },
+    })
     const rows = rowsFromWebhookResponse(rawResponse)
 
     const usedIds = new Set<number>()
@@ -168,10 +217,10 @@ export default defineEventHandler(async (): Promise<Partner[]> => {
       usedIds.add(partner.id)
       return Boolean(partner.name)
     })
-    cache = { data: partners, fetchedAt: Date.now() }
+    cache.set(lang, { data: partners, fetchedAt: Date.now() })
     return partners
   } catch (error) {
     console.error('[api/partners] Erreur:', error)
-    return cache?.data ?? []
+    return cached?.data ?? []
   }
 })

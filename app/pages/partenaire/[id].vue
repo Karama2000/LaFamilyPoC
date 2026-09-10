@@ -29,11 +29,18 @@ const { referenceRef, referenceHeight } = useReferenceHeight();
 const { currentLang, t, setLang } = useTranslation();
 const route = useRoute();
 
+// Même logique que agenda.vue / partenaires.vue : `lang` transmis à la route
+// serveur + `key` par langue, sinon la page détail reste bloquée en français
+// après un changement de langue.
 const { data: apiPartners } = await useFetch<Partner[]>("/api/partners", {
-  default: () => partnersFR,
+  query: { lang: currentLang },
+  key: computed(() => `partners-detail-${currentLang.value}`),
+  default: () => (currentLang.value === "fr" ? partnersFR : []),
 });
 const { data: apiAgendaEvents } = await useFetch<AgendaEvent[]>("/api/agenda", {
-  default: () => agendaEventsFR,
+  query: { lang: currentLang },
+  key: computed(() => `agenda-detail-${currentLang.value}`),
+  default: () => (currentLang.value === "fr" ? agendaEventsFR : []),
 });
 const partners = computed(() =>
   apiPartners.value?.length ? apiPartners.value : partnersFR,
